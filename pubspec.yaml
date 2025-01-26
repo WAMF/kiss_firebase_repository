@@ -1,0 +1,22 @@
+name: kiss_firebase_repository
+description: "A firebase implementation of kiss_repository interface"
+version: 0.6.0
+homepage: https://github.com/WAMF/kiss_firebase_repository
+
+environment:
+  sdk: ^3.6.0
+  flutter: ">=1.17.0"
+
+dependencies:
+  cloud_firestore: ^5.6.1
+  flutter:
+    sdk: flutter
+  kiss_repository: ^0.7.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+
