@@ -9,3 +9,7 @@
 ## 0.6.0
 
 * Add addWithId method
+
+## 0.6.1
+
+* Bugfix: Remove forced unwraps, creating exceptions on object deletion
