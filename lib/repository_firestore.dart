@@ -4,6 +4,46 @@ import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:kiss_firebase_repository/map_converter.dart';
 import 'package:kiss_repository/kiss_repository.dart';
 
+/// Special IdentifiedObject subclass that generates IDs on-demand
+class FirestoreIdentifiedObject<T> extends IdentifedObject<T> {
+  FirestoreIdentifiedObject(
+      T object, this._updateObjectWithId, this._repository)
+      : super('', object);
+
+  final T Function(T object, String id) _updateObjectWithId;
+  final RepositoryFirestore<T> _repository;
+  String? _cachedId;
+  T? _cachedUpdatedObject;
+
+  @override
+  String get id {
+    _cachedId ??= _generateFirestoreId();
+    return _cachedId!;
+  }
+
+  @override
+  T get object {
+    if (_cachedUpdatedObject == null) {
+      final generatedId = id; // This will generate and cache the ID if needed
+      _cachedUpdatedObject = _updateObjectWithId(super.object, generatedId);
+    }
+    return _cachedUpdatedObject!;
+  }
+
+  /// Generates a real Firestore document ID using the repository's collection
+  String _generateFirestoreId() {
+    final doc = _repository.store.collection(_repository.path).doc();
+    return doc.id;
+  }
+
+  /// Convenience factory method for creating objects with auto-generated IDs
+  factory FirestoreIdentifiedObject.create(
+          T object,
+          T Function(T object, String id) updateObjectWithId,
+          RepositoryFirestore<T> repository) =>
+      FirestoreIdentifiedObject(object, updateObjectWithId, repository);
+}
+
 dynamic _firebaseToDartTypeConversion(dynamic value) {
   if (value is firestore.Timestamp) {
     return value.toDate();
@@ -165,42 +205,21 @@ class RepositoryFirestore<T> extends Repository<T> {
   }
 
   @override
-  Future<T> add(T item) async {
-    final json = RepositoryFirestore.typeConversionToFirebase.convert(
-      source: toFirestore(item),
-    );
-    final newFirestoreObject = await store.collection(path).add(json);
-    final snapshot = await newFirestoreObject.get();
-
-    final data = snapshot.data();
-    if (data == null) {
-      throw RepositoryException.notFound(newFirestoreObject.id);
-    }
-
-    return fromFirestore(
-      snapshot.reference,
-      RepositoryFirestore.typeConversionFromFirebase.convert(
-        source: data,
-      ),
-    );
-  }
-
-  @override
-  Future<T> addWithId(String id, T item) async {
-    final doc = store.doc(_normaliseToFullPath(id));
+  Future<T> add(IdentifedObject<T> item) async {
+    final doc = store.doc(_normaliseToFullPath(item.id));
     final snapshot = await doc.get();
     if (snapshot.exists) {
-      throw RepositoryException.alreadyExists(id);
+      throw RepositoryException.alreadyExists(item.id);
     }
     final json = RepositoryFirestore.typeConversionToFirebase.convert(
-      source: toFirestore(item),
+      source: toFirestore(item.object),
     );
     await doc.set(json);
     final newSnapshot = await doc.get();
 
     final data = newSnapshot.data();
     if (data == null) {
-      throw RepositoryException.notFound(id);
+      throw RepositoryException.notFound(item.id);
     }
 
     return fromFirestore(
@@ -234,17 +253,17 @@ class RepositoryFirestore<T> extends Repository<T> {
   }
 
   @override
-  Future<Iterable<T>> addAll(Iterable<T> items) async {
+  Future<Iterable<T>> addAll(Iterable<IdentifedObject<T>> items) async {
     final batch = store.batch();
     for (final item in items) {
       final newFirestoreObject = store.collection(path).doc();
       final json = RepositoryFirestore.typeConversionToFirebase.convert(
-        source: toFirestore(item),
+        source: toFirestore(item.object),
       );
       batch.set(newFirestoreObject, json);
     }
     await batch.commit();
-    return items;
+    return items.map((e) => e.object).toList(growable: false);
   }
 
   @override
@@ -272,5 +291,30 @@ class RepositoryFirestore<T> extends Repository<T> {
       batch.delete(store.doc(_normaliseToFullPath(id)));
     }
     await batch.commit();
+  }
+
+  @override
+  Future<void> dispose() async {
+    // Nothing to do here
+  }
+
+  /// Creates a FirestoreIdentifiedObject with auto-generated Firestore ID
+  ///
+  /// This is a convenience method that creates a FirestoreIdentifiedObject
+  /// using this repository's Firestore instance and collection path.
+  ///
+  /// Example:
+  /// ```dart
+  /// final item = repository.createWithAutoId(
+  ///   user,
+  ///   (user, id) => user.copyWith(id: id)
+  /// );
+  /// final saved = await repository.add(item);
+  /// ```
+  FirestoreIdentifiedObject<T> createWithAutoId(
+    T object,
+    T Function(T object, String id) updateObjectWithId,
+  ) {
+    return FirestoreIdentifiedObject(object, updateObjectWithId, this);
   }
 }

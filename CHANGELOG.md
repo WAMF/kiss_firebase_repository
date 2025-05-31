@@ -13,3 +13,8 @@
 ## 0.6.1
 
 * Bugfix: Remove forced unwraps, creating exceptions on object deletion
+
+## 0.7.0
+
+* Update to new interface
+* Add integration tests with local emulator
