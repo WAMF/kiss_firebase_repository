@@ -3,7 +3,7 @@ import 'package:kiss_firebase_repository/kiss_firebase_repository.dart';
 import 'package:kiss_firebase_repository_example/data_model.dart';
 
 class AddUserForm extends StatefulWidget {
-  final RepositoryFirestore<User> userRepository;
+  final Repository<User> userRepository;
   final VoidCallback? onUserAdded;
 
   const AddUserForm({
@@ -46,12 +46,10 @@ class _AddUserFormState extends State<AddUserForm> {
       );
 
       // Create user with auto-generated Firestore ID
-      final autoItem = widget.userRepository.createWithAutoId(
+      await widget.userRepository.addAutoIdentified(
         user,
-        (user, id) => user.copyWith(id: id),
+        updateObjectWithId: (user, id) => user.copyWith(id: id),
       );
-
-      await widget.userRepository.add(autoItem);
 
       _nameController.clear();
       _emailController.clear();

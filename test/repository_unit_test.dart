@@ -47,7 +47,7 @@ void main() {
       final user =
           MockUser(id: 'test-1', name: 'John Doe', createdAt: testDate);
 
-      final identifiedObject = IdentifedObject('test-1', user);
+      final identifiedObject = IdentifiedObject('test-1', user);
 
       expect(identifiedObject.id, 'test-1');
       expect(identifiedObject.object.name, 'John Doe');

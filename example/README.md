@@ -20,7 +20,7 @@ The example now includes a comprehensive demonstration of the **Query system** w
 - `QueryRecentUsers` - Filter users created within the last N days
 
 ### QueryBuilder Implementation
-- `UserQueryBuilder` - Converts Query objects to Firestore queries
+- `FirestoreUserQueryBuilder` - Converts Query objects to Firestore queries
 - Demonstrates how to build complex Firestore queries programmatically
 - Shows proper ordering and filtering techniques
 
@@ -90,10 +90,14 @@ class QueryByName extends Query {
 }
 
 // 2. Implement QueryBuilder
-class UserQueryBuilder implements QueryBuilder<firestore.Query<Map<String, dynamic>>> {
+class FirestoreUserQueryBuilder implements QueryBuilder<firestore.Query<Map<String, dynamic>>> {
+  final String collectionPath;
+  
+  FirestoreUserQueryBuilder(this.collectionPath);
+
   @override
   firestore.Query<Map<String, dynamic>> build(Query query) {
-    final baseQuery = firestore.FirebaseFirestore.instance.collection('users');
+    final baseQuery = firestore.FirebaseFirestore.instance.collection(collectionPath);
     
     if (query is QueryByName) {
       final searchTermLower = query.searchTerm.toLowerCase();
@@ -110,7 +114,7 @@ class UserQueryBuilder implements QueryBuilder<firestore.Query<Map<String, dynam
 // 3. Configure repository with QueryBuilder
 final repository = RepositoryFirestore<User>(
   path: 'users',
-  queryBuilder: UserQueryBuilder('users'),
+  queryBuilder: FirestoreUserQueryBuilder('users'),
   // ... other configuration
 );
 
@@ -136,7 +140,13 @@ If you prefer to run things manually instead of using the scripts:
 npm install -g firebase-tools
 ```
 
-### 2. Start Firebase Emulator (in one terminal)
+### 2. Firebase Configuration
+
+The project includes a `firebase.json` configuration file at the repository root that configures the Firestore emulator to run on:
+- Emulator: `localhost:8080` (host: `0.0.0.0`)
+- UI: `localhost:4000`
+
+### 3. Start Firebase Emulator (in one terminal)
 
 From the root of the repository:
 
@@ -144,9 +154,9 @@ From the root of the repository:
 firebase emulators:start --only firestore
 ```
 
-This starts the Firestore emulator on `localhost:8080` and UI on `localhost:4000`.
+This starts the Firestore emulator using the configuration from `firebase.json`.
 
-### 3. Run the Example App (in another terminal)
+### 4. Run the Example App (in another terminal)
 
 ```bash
 cd example
@@ -156,7 +166,7 @@ flutter run
 
 The app will automatically connect to the Firestore emulator and you can start adding users and testing the search functionality.
 
-### 4. Test the Query System
+### 5. Test the Query System
 
 1. Add some users with different names and emails
 2. Switch to the "Search" tab
@@ -221,6 +231,7 @@ The example uses this repository configuration:
 final userRepository = RepositoryFirestore<User>(
   path: 'users',
   toFirestore: (user) => {
+    'id': user.id,
     'name': user.name,
     'email': user.email,
     'createdAt': user.createdAt,
@@ -229,8 +240,9 @@ final userRepository = RepositoryFirestore<User>(
     id: ref.id,
     name: data['name'] ?? '',
     email: data['email'] ?? '',
-    createdAt: (data['createdAt'] as Timestamp).toDate(),
+    createdAt: data['createdAt'] as DateTime,
   ),
+  queryBuilder: FirestoreUserQueryBuilder('users'),
 );
 ```
 
@@ -273,13 +285,20 @@ firebase emulators:start --only firestore
 
 ### Port Conflicts
 
-If port 8080 is in use, you can specify a different port:
+If port 8080 is in use, you can modify the `firebase.json` configuration:
 
-```bash
-firebase emulators:start --only firestore --project demo-project
+```json
+{
+  "emulators": {
+    "firestore": {
+      "port": 9090,
+      "host": "0.0.0.0"
+    }
+  }
+}
 ```
 
-Then update the emulator configuration in the app.
+Then update the emulator configuration in the app accordingly.
 
 ### Dependencies Issues
 

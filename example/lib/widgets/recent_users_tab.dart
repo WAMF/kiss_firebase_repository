@@ -5,7 +5,7 @@ import 'package:kiss_firebase_repository_example/queries.dart';
 import 'user_list_widget.dart';
 
 class RecentUsersTab extends StatelessWidget {
-  final RepositoryFirestore<User> userRepository;
+  final Repository<User> userRepository;
   final int daysBack;
 
   const RecentUsersTab({

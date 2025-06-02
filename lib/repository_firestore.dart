@@ -5,7 +5,7 @@ import 'package:kiss_firebase_repository/map_converter.dart';
 import 'package:kiss_repository/kiss_repository.dart';
 
 /// Special IdentifiedObject subclass that generates IDs on-demand
-class FirestoreIdentifiedObject<T> extends IdentifedObject<T> {
+class FirestoreIdentifiedObject<T> extends IdentifiedObject<T> {
   FirestoreIdentifiedObject(
       T object, this._updateObjectWithId, this._repository)
       : super('', object);
@@ -205,7 +205,7 @@ class RepositoryFirestore<T> extends Repository<T> {
   }
 
   @override
-  Future<T> add(IdentifedObject<T> item) async {
+  Future<T> add(IdentifiedObject<T> item) async {
     final doc = store.doc(_normaliseToFullPath(item.id));
     final snapshot = await doc.get();
     if (snapshot.exists) {
@@ -253,7 +253,7 @@ class RepositoryFirestore<T> extends Repository<T> {
   }
 
   @override
-  Future<Iterable<T>> addAll(Iterable<IdentifedObject<T>> items) async {
+  Future<Iterable<T>> addAll(Iterable<IdentifiedObject<T>> items) async {
     final batch = store.batch();
     for (final item in items) {
       final newFirestoreObject = store.collection(path).doc();
@@ -267,7 +267,7 @@ class RepositoryFirestore<T> extends Repository<T> {
   }
 
   @override
-  Future<Iterable<T>> updateAll(Iterable<IdentifedObject<T>> items) async {
+  Future<Iterable<T>> updateAll(Iterable<IdentifiedObject<T>> items) async {
     final batch = store.batch();
     for (final item in items) {
       final existingFirestoreRef = store.doc(_normaliseToFullPath(item.id));
@@ -298,23 +298,23 @@ class RepositoryFirestore<T> extends Repository<T> {
     // Nothing to do here
   }
 
-  /// Creates a FirestoreIdentifiedObject with auto-generated Firestore ID
-  ///
-  /// This is a convenience method that creates a FirestoreIdentifiedObject
-  /// using this repository's Firestore instance and collection path.
-  ///
-  /// Example:
-  /// ```dart
-  /// final item = repository.createWithAutoId(
-  ///   user,
-  ///   (user, id) => user.copyWith(id: id)
-  /// );
-  /// final saved = await repository.add(item);
-  /// ```
-  FirestoreIdentifiedObject<T> createWithAutoId(
-    T object,
-    T Function(T object, String id) updateObjectWithId,
-  ) {
-    return FirestoreIdentifiedObject(object, updateObjectWithId, this);
+  @override
+  IdentifiedObject<T> autoIdentify(
+    T object, {
+    T Function(T object, String id)? updateObjectWithId,
+  }) {
+    return FirestoreIdentifiedObject(
+      object,
+      updateObjectWithId ?? (object, id) => object,
+      this,
+    );
+  }
+
+  @override
+  Future<T> addAutoIdentified(T object,
+      {T Function(T object, String id)? updateObjectWithId}) async {
+    final autoIdentifiedObject =
+        autoIdentify(object, updateObjectWithId: updateObjectWithId);
+    return add(autoIdentifiedObject);
   }
 }

@@ -3,7 +3,7 @@ import 'package:kiss_firebase_repository/kiss_firebase_repository.dart';
 import 'package:kiss_firebase_repository_example/data_model.dart';
 
 class UserListWidget extends StatelessWidget {
-  final RepositoryFirestore<User> userRepository;
+  final Repository<User> userRepository;
   final Query query;
 
   const UserListWidget({

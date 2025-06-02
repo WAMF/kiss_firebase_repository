@@ -18,3 +18,7 @@
 
 * Update to new interface
 * Add integration tests with local emulator
+
+## 0.8.0
+
+* Update to new interface 
