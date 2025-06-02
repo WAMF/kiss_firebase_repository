@@ -53,6 +53,11 @@ class User {
       id.hashCode ^ name.hashCode ^ email.hashCode ^ createdAt.hashCode;
 }
 
+void _log(String message) {
+  // ignore: avoid_print
+  print(message);
+}
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -60,7 +65,7 @@ void main() {
     late RepositoryFirestore<User> repository;
 
     setUpAll(() async {
-      print('🔥 Initializing Firebase for integration testing...');
+      _log('🔥 Initializing Firebase for integration testing...');
 
       try {
         // Add timeout to Firebase initialization
@@ -89,18 +94,18 @@ void main() {
           }),
         ]);
 
-        print('✅ Firebase initialized successfully');
-        print('🔗 Configuring Firestore emulator...');
+        _log('✅ Firebase initialized successfully');
+        _log('🔗 Configuring Firestore emulator...');
 
         // Try multiple host configurations for iOS compatibility
         String emulatorHost = '0.0.0.0'; // Default fallback
         // Configure Firestore to use emulator
         FirebaseFirestore.instance.useFirestoreEmulator(emulatorHost, 8080);
 
-        print('✅ Firebase configured for emulator integration testing');
+        _log('✅ Firebase configured for emulator integration testing');
 
         // Test connection to emulator with timeout
-        print('🧪 Testing Firestore connection...');
+        _log('🧪 Testing Firestore connection...');
         final testCollection = FirebaseFirestore.instance.collection(
           'test_connection',
         );
@@ -116,24 +121,24 @@ void main() {
                 );
               },
             );
-        print('✅ Successfully connected to Firestore emulator');
+        _log('✅ Successfully connected to Firestore emulator');
       } catch (e) {
-        print('⚠️ Firebase initialization error: $e');
-        print('📋 Error details: ${e.toString()}');
-        print('🔍 Error type: ${e.runtimeType}');
+        _log('⚠️ Firebase initialization error: $e');
+        _log('📋 Error details: ${e.toString()}');
+        _log('🔍 Error type: ${e.runtimeType}');
 
         // Firebase might already be initialized
         if (e.toString().contains('already')) {
-          print('🔄 Firebase already initialized, proceeding...');
+          _log('🔄 Firebase already initialized, proceeding...');
         } else {
-          print('❌ Fatal Firebase initialization error');
+          _log('❌ Fatal Firebase initialization error');
           rethrow;
         }
       }
     });
 
     setUp(() async {
-      print('🧪 Setting up integration test...');
+      _log('🧪 Setting up integration test...');
 
       // Create a fresh repository for each test
       repository = RepositoryFirestore<User>(
@@ -191,7 +196,7 @@ void main() {
       );
 
       final addedUser = await repository.add(
-        IdentifedObject('integration-test-user-1', user),
+        IdentifiedObject('integration-test-user-1', user),
       );
 
       expect(addedUser.id, 'integration-test-user-1');
@@ -221,14 +226,14 @@ void main() {
       final createdAt = DateTime.now();
 
       // Use repository helper to create FirestoreIdentifiedObject with real Firestore ID
-      final autoItem = repository.createWithAutoId(
+      final autoItem = await repository.addAutoIdentified(
         User(
           id: '', // This will be ignored - Firestore generates its own ID
           name: 'Jane Smith',
           email: 'jane.smith@example.com',
           createdAt: createdAt,
         ),
-        (user, id) => user.copyWith(id: id),
+        updateObjectWithId: (user, id) => user.copyWith(id: id),
       );
 
       // The ID is generated using Firestore's document reference
@@ -240,18 +245,11 @@ void main() {
       expect(autoItem.id, equals(generatedId));
 
       // The object now has the Firestore-generated ID populated
-      expect(autoItem.object.id, equals(generatedId));
-      expect(autoItem.object.name, 'Jane Smith');
-      expect(autoItem.object.email, 'jane.smith@example.com');
-
-      final createdUser = await repository.add(autoItem);
-
-      // Verify the user was created with the Firestore-generated ID
-      expect(createdUser.id, generatedId);
-      expect(createdUser.name, 'Jane Smith');
-      expect(createdUser.email, 'jane.smith@example.com');
+      expect(autoItem.id, equals(generatedId));
+      expect(autoItem.name, 'Jane Smith');
+      expect(autoItem.email, 'jane.smith@example.com');
       expect(
-        createdUser.createdAt.millisecondsSinceEpoch,
+        autoItem.createdAt.millisecondsSinceEpoch,
         createdAt.millisecondsSinceEpoch,
       );
 
@@ -273,7 +271,7 @@ void main() {
         email: 'original.name@example.com',
         createdAt: DateTime.now(),
       );
-      await repository.add(IdentifedObject('update-test-integration', user));
+      await repository.add(IdentifiedObject('update-test-integration', user));
 
       // Then update the user
       final updatedUser = await repository.update('update-test-integration', (
@@ -299,7 +297,7 @@ void main() {
         email: 'to.be.deleted@example.com',
         createdAt: DateTime.now(),
       );
-      await repository.add(IdentifedObject('delete-test-integration', user));
+      await repository.add(IdentifiedObject('delete-test-integration', user));
 
       // Verify user exists
       final retrievedUser = await repository.get('delete-test-integration');
@@ -320,7 +318,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final users = [
-        IdentifedObject(
+        IdentifiedObject(
           'batch-integration-1',
           User(
             id: 'batch-integration-1',
@@ -329,7 +327,7 @@ void main() {
             createdAt: DateTime.now(),
           ),
         ),
-        IdentifedObject(
+        IdentifiedObject(
           'batch-integration-2',
           User(
             id: 'batch-integration-2',
@@ -338,7 +336,7 @@ void main() {
             createdAt: DateTime.now(),
           ),
         ),
-        IdentifedObject(
+        IdentifiedObject(
           'batch-integration-3',
           User(
             id: 'batch-integration-3',
@@ -389,7 +387,7 @@ void main() {
 
       // Add some test users
       final users = [
-        IdentifedObject(
+        IdentifiedObject(
           'query-integration-1',
           User(
             id: 'query-integration-1',
@@ -398,7 +396,7 @@ void main() {
             createdAt: DateTime.now(),
           ),
         ),
-        IdentifedObject(
+        IdentifiedObject(
           'query-integration-2',
           User(
             id: 'query-integration-2',
@@ -407,7 +405,7 @@ void main() {
             createdAt: DateTime.now(),
           ),
         ),
-        IdentifedObject(
+        IdentifiedObject(
           'query-integration-3',
           User(
             id: 'query-integration-3',
@@ -446,7 +444,7 @@ void main() {
       final streamFuture = repository.stream(userId).first;
 
       // Add the user
-      await repository.add(IdentifedObject(userId, user));
+      await repository.add(IdentifiedObject(userId, user));
 
       // Wait for the stream to emit the user
       final streamedUser = await streamFuture;
@@ -468,11 +466,9 @@ Future<void> _clearCollection(String collectionPath) async {
 
     if (snapshot.docs.isNotEmpty) {
       await batch.commit();
-      print(
-        '🧹 Cleared ${snapshot.docs.length} documents from $collectionPath',
-      );
+      _log('🧹 Cleared ${snapshot.docs.length} documents from $collectionPath');
     }
   } catch (e) {
-    print('⚠️ Error clearing collection $collectionPath: $e');
+    _log('⚠️ Error clearing collection $collectionPath: $e');
   }
 }

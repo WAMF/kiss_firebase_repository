@@ -31,6 +31,11 @@ import 'widgets/search_tab.dart';
 import 'widgets/recent_users_tab.dart';
 import 'widgets/repository_info_widget.dart';
 
+void _log(String message) {
+  // ignore: avoid_print
+  print(message);
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -49,15 +54,15 @@ void main() async {
         '0.0.0.0',
         8080,
       );
-      print('🔥 Using Firestore emulator at 0.0.0.0:8080');
+      _log('🔥 Using Firestore emulator at 0.0.0.0:8080');
     } catch (e) {
-      print('⚠️ Could not connect to Firestore emulator: $e');
-      print('💡 Make sure to run: firebase emulators:start --only firestore');
+      _log('⚠️ Could not connect to Firestore emulator: $e');
+      _log('💡 Make sure to run: firebase emulators:start --only firestore');
     }
 
-    print('✅ Firebase initialized successfully');
+    _log('✅ Firebase initialized successfully');
   } catch (e) {
-    print('⚠️ Firebase initialization error: $e');
+    _log('⚠️ Firebase initialization error: $e');
   }
 
   runApp(const MyApp());
