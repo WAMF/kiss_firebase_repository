@@ -25,3 +25,10 @@ doc/api/
 
 .flutter-plugins
 .flutter-plugins-dependencies
+
+# Cursor IDE
+.cursor/
+
+# Firebase debug logs
+firebase-debug.log
+firestore-debug.log
