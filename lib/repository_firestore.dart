@@ -254,9 +254,6 @@ class RepositoryFirestore<T> extends Repository<T> {
 
     for (final item in items) {
       await _ensureNotExists(item.id);
-    }
-
-    for (final item in items) {
       final doc = store.doc(_normaliseToFullPath(item.id));
       final json = RepositoryFirestore.typeConversionToFirebase.convert(
         source: toFirestore(item.object),
