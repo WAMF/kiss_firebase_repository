@@ -1,7 +1,6 @@
 import 'package:kiss_firebase_repository/kiss_firebase_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 
-// Test model
 class TestUser {
   final String id;
   final String name;
@@ -27,7 +26,6 @@ class TestUser {
   int get hashCode => id.hashCode ^ name.hashCode ^ age.hashCode;
 }
 
-// Query classes for testing
 class QueryByAge extends Query {
   final int minAge;
   const QueryByAge(this.minAge);
@@ -43,7 +41,6 @@ class QueryRecentUsers extends Query {
   const QueryRecentUsers(this.daysAgo);
 }
 
-// Query builder for TestUser
 class TestUserQueryBuilder implements QueryBuilder<firestore.Query<Map<String, dynamic>>> {
   @override
   firestore.Query<Map<String, dynamic>> build(Query query) {
@@ -67,7 +64,6 @@ class TestUserQueryBuilder implements QueryBuilder<firestore.Query<Map<String, d
           .orderBy('createdAt', descending: true);
     }
 
-    // Default: return all users ordered by creation date
     return baseQuery.orderBy('createdAt', descending: true);
   }
 }
