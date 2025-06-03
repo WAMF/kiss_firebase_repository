@@ -102,5 +102,125 @@ void main() {
         // Test passes if no exception thrown
       });
     });
+
+    group('ID Management & Auto-Generation', () {
+      test('should auto-generate IDs with autoIdentify', () async {
+        final user = TestUser(
+          id: '', // Empty ID - will be auto-generated
+          name: 'Auto User',
+          age: 25,
+          createdAt: DateTime.now(),
+        );
+
+        // Create auto-identified object with custom updateObjectWithId
+        final autoIdentified = repository.autoIdentify(
+          user,
+          updateObjectWithId: (user, generatedId) => user.copyWith(id: generatedId),
+        );
+
+        // ID should be generated (Firestore IDs are 20 characters)
+        expect(autoIdentified.id, isNotEmpty);
+        expect(autoIdentified.id.length, 20);
+        expect(autoIdentified.object.name, 'Auto User');
+        expect(autoIdentified.object.age, 25);
+        // The object should now have the generated ID
+        expect(autoIdentified.object.id, autoIdentified.id);
+      });
+
+      test('should add items with auto-generated IDs using addAutoIdentified', () async {
+        final user = TestUser(
+          id: '', // Empty ID - will be auto-generated
+          name: 'Auto Added User',
+          age: 30,
+          createdAt: DateTime.now(),
+        );
+
+        // Add with auto-generated ID
+        final addedUser = await repository.addAutoIdentified(
+          user,
+          updateObjectWithId: (user, generatedId) => user.copyWith(id: generatedId),
+        );
+
+        // Should have auto-generated ID
+        expect(addedUser.id, isNotEmpty);
+        expect(addedUser.id.length, 20);
+        expect(addedUser.name, 'Auto Added User');
+        expect(addedUser.age, 30);
+
+        // Should be retrievable by the generated ID
+        final retrieved = await repository.get(addedUser.id);
+        expect(retrieved.id, addedUser.id);
+        expect(retrieved.name, 'Auto Added User');
+      });
+
+      test('should handle multiple auto-generated IDs being unique', () async {
+        final users = List.generate(
+          5,
+          (i) => TestUser(id: '', name: 'User $i', age: 20 + i, createdAt: DateTime.now()),
+        );
+
+        // Add all users with auto-generated IDs
+        final addedUsers = <TestUser>[];
+        for (final user in users) {
+          final added = await repository.addAutoIdentified(
+            user,
+            updateObjectWithId: (user, generatedId) => user.copyWith(id: generatedId),
+          );
+          addedUsers.add(added);
+        }
+
+        // All IDs should be unique and valid
+        final ids = addedUsers.map((u) => u.id).toSet();
+        expect(ids.length, 5); // All unique
+
+        for (final user in addedUsers) {
+          expect(user.id, isNotEmpty);
+          expect(user.id.length, 20);
+        }
+
+        // All should be retrievable
+        for (final user in addedUsers) {
+          final retrieved = await repository.get(user.id);
+          expect(retrieved.id, user.id);
+          expect(retrieved.name, user.name);
+        }
+      });
+
+      test('should work with autoIdentify then manual add', () async {
+        final user = TestUser(id: '', name: 'Manual Add User', age: 40, createdAt: DateTime.now());
+
+        // First auto-identify to get the ID
+        final autoIdentified = repository.autoIdentify(user, updateObjectWithId: (user, id) => user.copyWith(id: id));
+
+        // Then manually add using the auto-identified object
+        final addedUser = await repository.add(autoIdentified);
+
+        // Should work correctly
+        expect(addedUser.id, isNotEmpty);
+        expect(addedUser.id.length, 20);
+        expect(addedUser.name, 'Manual Add User');
+
+        // Should be retrievable
+        final retrieved = await repository.get(addedUser.id);
+        expect(retrieved.id, addedUser.id);
+        expect(retrieved.name, 'Manual Add User');
+      });
+
+      test('should handle autoIdentify without updateObjectWithId (default behavior)', () async {
+        final user = TestUser(id: 'original-id', name: 'Default User', age: 45, createdAt: DateTime.now());
+
+        // Auto-identify without custom updateObjectWithId
+        final autoIdentified = repository.autoIdentify(user);
+
+        // Should generate a new ID
+        expect(autoIdentified.id, isNotEmpty);
+        expect(autoIdentified.id.length, 20);
+        expect(autoIdentified.id, isNot('original-id'));
+
+        // Object should remain unchanged (default behavior)
+        expect(autoIdentified.object.id, 'original-id');
+        expect(autoIdentified.object.name, 'Default User');
+      });
+    });
   });
 }
