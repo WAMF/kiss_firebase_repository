@@ -33,8 +33,9 @@ doc/api/
 firebase-debug.log
 firestore-debug.log
 
-#Intellij IDE
+# IntelliJ IDE
 .idea/
+*.iml
 
 # MacOs
 .DS_Store

@@ -38,7 +38,9 @@ class FirestoreIdentifiedObject<T> extends IdentifiedObject<T> {
 
   /// Convenience factory method for creating objects with auto-generated IDs
   factory FirestoreIdentifiedObject.create(
-          T object, T Function(T object, String id) updateObjectWithId, RepositoryFirestore<T> repository) =>
+          T object,
+          T Function(T object, String id) updateObjectWithId,
+          RepositoryFirestore<T> repository) =>
       FirestoreIdentifiedObject(object, updateObjectWithId, repository);
 }
 
