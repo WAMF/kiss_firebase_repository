@@ -222,5 +222,137 @@ void main() {
         expect(autoIdentified.object.name, 'Default User');
       });
     });
+
+    group('Batch Operations', () {
+      test('should add multiple items with addAll', () async {
+        final users = [
+          TestUser(id: 'batch1', name: 'Batch User 1', age: 25, createdAt: DateTime.now()),
+          TestUser(id: 'batch2', name: 'Batch User 2', age: 30, createdAt: DateTime.now()),
+          TestUser(id: 'batch3', name: 'Batch User 3', age: 35, createdAt: DateTime.now()),
+        ];
+
+        final identifiedUsers = users.map((user) => IdentifiedObject(user.id, user)).toList();
+
+        // Add all users in batch
+        final addedUsers = await repository.addAll(identifiedUsers);
+
+        // Convert to list for indexing
+        final addedUsersList = addedUsers.toList();
+
+        // Verify all were added
+        expect(addedUsersList.length, 3);
+        for (int i = 0; i < users.length; i++) {
+          expect(addedUsersList[i].id, users[i].id);
+          expect(addedUsersList[i].name, users[i].name);
+          expect(addedUsersList[i].age, users[i].age);
+
+          // Verify they exist in storage
+          final retrieved = await repository.get(users[i].id);
+          expect(retrieved.id, users[i].id);
+          expect(retrieved.name, users[i].name);
+        }
+      });
+
+      test('should update multiple items with updateAll', () async {
+        // First add some users
+        final users = [
+          TestUser(id: 'update1', name: 'Update User 1', age: 20, createdAt: DateTime.now()),
+          TestUser(id: 'update2', name: 'Update User 2', age: 25, createdAt: DateTime.now()),
+          TestUser(id: 'update3', name: 'Update User 3', age: 30, createdAt: DateTime.now()),
+        ];
+
+        final identifiedUsers = users.map((user) => IdentifiedObject(user.id, user)).toList();
+        await repository.addAll(identifiedUsers);
+
+        // Update all users - increase age by 10
+        final updatedUserObjects = users.map((user) => user.copyWith(age: user.age + 10)).toList();
+        final identifiedUpdates = updatedUserObjects.map((user) => IdentifiedObject(user.id, user)).toList();
+
+        final updatedUsers = await repository.updateAll(identifiedUpdates);
+
+        // Convert to list for indexing
+        final updatedUsersList = updatedUsers.toList();
+
+        // Verify updates
+        expect(updatedUsersList.length, 3);
+        for (int i = 0; i < users.length; i++) {
+          expect(updatedUsersList[i].id, users[i].id);
+          expect(updatedUsersList[i].name, users[i].name);
+          expect(updatedUsersList[i].age, users[i].age + 10);
+
+          // Verify in storage
+          final retrieved = await repository.get(users[i].id);
+          expect(retrieved.age, users[i].age + 10);
+        }
+      });
+
+      test('should delete multiple items with deleteAll', () async {
+        // First add some users
+        final users = [
+          TestUser(id: 'delete1', name: 'Delete User 1', age: 40, createdAt: DateTime.now()),
+          TestUser(id: 'delete2', name: 'Delete User 2', age: 45, createdAt: DateTime.now()),
+          TestUser(id: 'delete3', name: 'Delete User 3', age: 50, createdAt: DateTime.now()),
+        ];
+
+        final identifiedUsers = users.map((user) => IdentifiedObject(user.id, user)).toList();
+        await repository.addAll(identifiedUsers);
+
+        // Verify they exist
+        for (final user in users) {
+          final retrieved = await repository.get(user.id);
+          expect(retrieved.id, user.id);
+        }
+
+        // Delete all
+        final deleteIds = users.map((user) => user.id).toList();
+        await repository.deleteAll(deleteIds);
+
+        // Verify all are deleted
+        for (final user in users) {
+          expect(() => repository.get(user.id), throwsA(isA<RepositoryException>()));
+        }
+      });
+
+      test('should handle batch operations with some failures', () async {
+        // Add one user first
+        final existingUser = TestUser(id: 'existing', name: 'Existing User', age: 25, createdAt: DateTime.now());
+        await repository.add(IdentifiedObject(existingUser.id, existingUser));
+
+        // Try to add batch including duplicate ID
+        final batchUsers = [
+          TestUser(id: 'new1', name: 'New User 1', age: 30, createdAt: DateTime.now()),
+          TestUser(id: 'existing', name: 'Duplicate User', age: 35, createdAt: DateTime.now()), // This should fail
+          TestUser(id: 'new2', name: 'New User 2', age: 40, createdAt: DateTime.now()),
+        ];
+
+        final identifiedBatch = batchUsers.map((user) => IdentifiedObject(user.id, user)).toList();
+
+        // Should throw RepositoryException for duplicate
+        expect(() => repository.addAll(identifiedBatch), throwsA(isA<RepositoryException>()));
+
+        // Verify partial operations didn't complete
+        expect(() => repository.get('new1'), throwsA(isA<RepositoryException>()));
+        expect(() => repository.get('new2'), throwsA(isA<RepositoryException>()));
+
+        // Original should still exist unchanged
+        final retrieved = await repository.get('existing');
+        expect(retrieved.name, 'Existing User');
+        expect(retrieved.age, 25);
+      });
+
+      test('should handle empty batch operations', () async {
+        // Empty addAll
+        final emptyAddResult = await repository.addAll(<IdentifiedObject<TestUser>>[]);
+        expect(emptyAddResult, isEmpty);
+
+        // Empty updateAll
+        final emptyUpdateResult = await repository.updateAll(<IdentifiedObject<TestUser>>[]);
+        expect(emptyUpdateResult, isEmpty);
+
+        // Empty deleteAll - should complete without error
+        await repository.deleteAll(<String>[]);
+        // Test passes if no exception thrown
+      });
+    });
   });
 }

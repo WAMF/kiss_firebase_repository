@@ -1,11 +1,11 @@
 // Test model
 class TestUser {
-  final String? id; // Nullable for auto-generation
+  final String id;
   final String name;
   final int age;
   final DateTime createdAt;
 
-  TestUser({this.id, required this.name, required this.age, required this.createdAt});
+  TestUser({required this.id, required this.name, required this.age, required this.createdAt});
 
   Map<String, dynamic> toMap() => {'id': id, 'name': name, 'age': age, 'createdAt': createdAt.toIso8601String()};
 
