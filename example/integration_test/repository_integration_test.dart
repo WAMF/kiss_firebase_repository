@@ -469,5 +469,203 @@ void main() {
         expect(names, contains('Alice Jones'));
       });
     });
+
+    group('Real-time Streaming', () {
+      test('should stream single document changes', () async {
+        final user = TestUser(id: 'stream-user', name: 'Initial Name', age: 25, createdAt: DateTime.now());
+
+        // Start streaming before the document exists
+        final stream = repository.stream('stream-user');
+        final streamFuture = stream.take(3).toList(); // Take first 3 emissions
+
+        // Add the document
+        await repository.add(IdentifiedObject(user.id, user));
+
+        // Update the document twice
+        await repository.update(user.id, (current) => current.copyWith(name: 'Updated Name 1'));
+        await repository.update(user.id, (current) => current.copyWith(name: 'Updated Name 2', age: 30));
+
+        // Wait for all stream emissions
+        final emissions = await streamFuture.timeout(Duration(seconds: 10));
+
+        expect(emissions.length, 3);
+        expect(emissions[0].name, 'Initial Name');
+        expect(emissions[0].age, 25);
+        expect(emissions[1].name, 'Updated Name 1');
+        expect(emissions[1].age, 25);
+        expect(emissions[2].name, 'Updated Name 2');
+        expect(emissions[2].age, 30);
+      });
+
+      test('should stream query results changes', () async {
+        // Start streaming query results
+        final stream = repository.streamQuery();
+        final streamFuture = stream.take(4).toList(); // Take first 4 emissions
+
+        // Initially empty
+        await Future.delayed(Duration(milliseconds: 100));
+
+        // Add users one by one
+        final user1 = TestUser(id: 'stream1', name: 'User 1', age: 25, createdAt: DateTime.now());
+        await repository.add(IdentifiedObject(user1.id, user1));
+
+        final user2 = TestUser(id: 'stream2', name: 'User 2', age: 30, createdAt: DateTime.now());
+        await repository.add(IdentifiedObject(user2.id, user2));
+
+        // Update one user
+        await repository.update(user1.id, (current) => current.copyWith(name: 'Updated User 1'));
+
+        // Wait for all emissions
+        final emissions = await streamFuture.timeout(Duration(seconds: 10));
+
+        expect(emissions.length, 4);
+        expect(emissions[0].length, 0); // Initial empty state
+        expect(emissions[1].length, 1); // After adding user1
+        expect(emissions[1][0].name, 'User 1');
+        expect(emissions[2].length, 2); // After adding user2
+        expect(emissions[3].length, 2); // After updating user1
+        expect(emissions[3].firstWhere((u) => u.id == 'stream1').name, 'Updated User 1');
+      });
+
+      test('should handle multiple concurrent streams', () async {
+        final user1 = TestUser(id: 'concurrent1', name: 'User 1', age: 25, createdAt: DateTime.now());
+        final user2 = TestUser(id: 'concurrent2', name: 'User 2', age: 30, createdAt: DateTime.now());
+
+        // Add initial data
+        await repository.add(IdentifiedObject(user1.id, user1));
+        await repository.add(IdentifiedObject(user2.id, user2));
+
+        // Start multiple streams
+        final stream1 = repository.stream('concurrent1');
+        final stream2 = repository.stream('concurrent2');
+        final queryStream = repository.streamQuery();
+
+        final stream1Future = stream1.take(2).toList();
+        final stream2Future = stream2.take(2).toList();
+        final queryStreamFuture = queryStream.take(3).toList();
+
+        // Update both users
+        await repository.update(user1.id, (current) => current.copyWith(name: 'Updated User 1'));
+        await repository.update(user2.id, (current) => current.copyWith(name: 'Updated User 2'));
+
+        // Wait for all streams
+        final stream1Emissions = await stream1Future.timeout(Duration(seconds: 10));
+        final stream2Emissions = await stream2Future.timeout(Duration(seconds: 10));
+        final queryEmissions = await queryStreamFuture.timeout(Duration(seconds: 10));
+
+        // Verify individual streams
+        expect(stream1Emissions.length, 2);
+        expect(stream1Emissions[0].name, 'User 1');
+        expect(stream1Emissions[1].name, 'Updated User 1');
+
+        expect(stream2Emissions.length, 2);
+        expect(stream2Emissions[0].name, 'User 2');
+        expect(stream2Emissions[1].name, 'Updated User 2');
+
+        // Verify query stream saw all changes
+        expect(queryEmissions.length, 3);
+        expect(queryEmissions[0].length, 2); // Initial state
+        expect(queryEmissions[2].length, 2); // After both updates
+      });
+
+      test('should handle streaming non-existent document', () async {
+        // Stream a document that doesn't exist
+        final stream = repository.stream('non-existent');
+
+        // Create the document after starting the stream
+        final user = TestUser(id: 'non-existent', name: 'Created Later', age: 25, createdAt: DateTime.now());
+
+        final streamFuture = stream.take(1).toList();
+
+        // Add the document
+        await repository.add(IdentifiedObject(user.id, user));
+
+        // Should receive the document once it's created
+        final emissions = await streamFuture.timeout(Duration(seconds: 10));
+
+        expect(emissions.length, 1);
+        expect(emissions[0].name, 'Created Later');
+        expect(emissions[0].id, 'non-existent');
+      });
+
+      test('should stream with custom queries', () async {
+        // Add test data
+        final users = [
+          TestUser(id: 'young1', name: 'Young User 1', age: 20, createdAt: DateTime.now()),
+          TestUser(id: 'adult1', name: 'Adult User 1', age: 30, createdAt: DateTime.now()),
+          TestUser(id: 'adult2', name: 'Adult User 2', age: 35, createdAt: DateTime.now()),
+        ];
+
+        for (final user in users) {
+          await repository.add(IdentifiedObject(user.id, user));
+        }
+
+        // Stream adults only (age >= 30)
+        final adultStream = repository.streamQuery(query: QueryByAge(30));
+        final streamFuture = adultStream.take(2).toList();
+
+        // Add another adult
+        final newAdult = TestUser(id: 'adult3', name: 'Adult User 3', age: 40, createdAt: DateTime.now());
+        await repository.add(IdentifiedObject(newAdult.id, newAdult));
+
+        final emissions = await streamFuture.timeout(Duration(seconds: 10));
+
+        expect(emissions.length, 2);
+        expect(emissions[0].length, 2); // Initial: adult1, adult2
+        expect(emissions[1].length, 3); // After adding: adult1, adult2, adult3
+
+        // Verify only adults are included
+        for (final emission in emissions) {
+          for (final user in emission) {
+            expect(user.age, greaterThanOrEqualTo(30));
+          }
+        }
+      });
+
+      test('should stop emitting when document is deleted', () async {
+        final user = TestUser(id: 'delete-stream', name: 'To Be Deleted', age: 25, createdAt: DateTime.now());
+
+        // Add the document
+        await repository.add(IdentifiedObject(user.id, user));
+
+        // Start streaming
+        final stream = repository.stream('delete-stream');
+        final emissions = <TestUser>[];
+
+        final subscription = stream.listen((user) {
+          emissions.add(user);
+        });
+
+        // Wait for initial emission
+        await Future.delayed(Duration(milliseconds: 500));
+
+        // Delete the document
+        await repository.delete(user.id);
+
+        // Wait a bit more to see if any more emissions occur
+        await Future.delayed(Duration(milliseconds: 500));
+
+        // Clean up subscription
+        await subscription.cancel();
+
+        // Should only have received the initial document, no emissions after deletion
+        expect(emissions.length, 1);
+        expect(emissions[0].name, 'To Be Deleted');
+      });
+
+      test('should emit initial data immediately on stream subscription', () async {
+        final user = TestUser(id: 'immediate', name: 'Immediate User', age: 25, createdAt: DateTime.now());
+
+        // Add document first
+        await repository.add(IdentifiedObject(user.id, user));
+
+        // Start streaming - should get immediate emission
+        final stream = repository.stream('immediate');
+        final firstEmission = await stream.first.timeout(Duration(seconds: 5));
+
+        expect(firstEmission.name, 'Immediate User');
+        expect(firstEmission.id, 'immediate');
+      });
+    });
   });
 }
