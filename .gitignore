@@ -32,3 +32,8 @@ doc/api/
 # Firebase debug logs
 firebase-debug.log
 firestore-debug.log
+
+# Intellij IDE
+.idea
+*.iml
+.metadata
