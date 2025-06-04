@@ -182,7 +182,7 @@ class RepositoryPocketBase<T> extends Repository<T> {
         }
       }
       throw RepositoryException(
-        message: 'Failed to add record: ${e.response ?? e.toString()}',
+        message: 'Failed to add record: ${e.response}',
       );
     } catch (e) {
       throw RepositoryException(message: 'Failed to add record: $e');

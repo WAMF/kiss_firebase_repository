@@ -50,39 +50,54 @@ echo "✅ Admin token obtained"
 
 # 📝 Create test_users collection via API (base type for test data)
 echo "Creating test_users collection..."
+cat > /tmp/test_users_collection.json <<EOF
+{
+  "name": "test_users",
+  "type": "base",
+  "fields": [
+    {
+      "name": "name",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "age",
+      "type": "number",
+      "required": true
+    },
+    {
+      "name": "created",
+      "type": "autodate",
+      "onCreate": true,
+      "onUpdate": false
+    }
+  ],
+  "listRule": "@request.auth.id != \"\"",
+  "viewRule": "@request.auth.id != \"\"",
+  "createRule": "@request.auth.id != \"\"",
+  "updateRule": "@request.auth.id != \"\"",
+  "deleteRule": "@request.auth.id != \"\""
+}
+EOF
+
 COLLECTION_RESPONSE=$(curl -s -X POST http://127.0.0.1:8090/api/collections \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
-  -d '{
-    "name": "test_users",
-    "type": "base",
-    "schema": [
-      {
-        "name": "name",
-        "type": "text",
-        "required": true,
-        "options": {}
-      },
-      {
-        "name": "age",
-        "type": "number",
-        "required": true,
-        "options": {}
-      }
-    ],
-    "listRule": "@request.auth.id != \"\"",
-    "viewRule": "@request.auth.id != \"\"",
-    "createRule": "@request.auth.id != \"\"",
-    "updateRule": "@request.auth.id != \"\"",
-    "deleteRule": "@request.auth.id != \"\""
-  }')
+  -d @/tmp/test_users_collection.json)
+
+echo "Collection creation response: $COLLECTION_RESPONSE"
 
 if echo "$COLLECTION_RESPONSE" | grep -q '"id"'; then
   echo "✅ test_users collection created"
 else
-  echo "ℹ️ Collection might already exist or there was an error"
-  echo "Response: $COLLECTION_RESPONSE"
+  echo "❌ Failed to create collection"
+  echo "Full response: $COLLECTION_RESPONSE"
+  kill $PB_PID 2>/dev/null || true
+  exit 1
 fi
+
+# Clean up temp file
+rm -f /tmp/test_users_collection.json
 
 # 👥 Create test user in the users collection (for authentication)
 echo "Creating test user in users collection..."

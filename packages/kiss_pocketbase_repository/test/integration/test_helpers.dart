@@ -20,7 +20,7 @@ class IntegrationTestHelpers {
     // Authenticate as test user using the test_users collection (auth type)
     try {
       await pocketbaseClient
-          .collection(testCollection)
+          .collection('users')
           .authWithPassword(testUserEmail, testUserPassword);
       print('🔐 Authenticated as test user: $testUserEmail');
     } catch (e) {
