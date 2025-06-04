@@ -9,8 +9,27 @@ class IntegrationTestHelpers {
   static const String testCollection = 'test_users';
   static const String pocketbaseUrl = 'http://localhost:8090';
 
+  // Test user credentials (matching the setup script)
+  static const String testUserEmail = 'testuser@example.com';
+  static const String testUserPassword = 'testuser123';
+
+  /// Initialize PocketBase connection and authenticate as test user
   static Future<void> initializePocketBase() async {
     pocketbaseClient = PocketBase(pocketbaseUrl);
+
+    // Authenticate as test user using the test_users collection (auth type)
+    try {
+      await pocketbaseClient
+          .collection(testCollection)
+          .authWithPassword(testUserEmail, testUserPassword);
+      print('🔐 Authenticated as test user: $testUserEmail');
+    } catch (e) {
+      throw Exception(
+        'Failed to authenticate test user. Make sure user exists:\n'
+        'Email: $testUserEmail\n'
+        'Error: $e',
+      );
+    }
 
     repository = RepositoryPocketBase<TestUser>(
       client: pocketbaseClient,
@@ -20,12 +39,15 @@ class IntegrationTestHelpers {
     );
   }
 
+  /// Clear all test data from the collection
   static Future<void> clearTestCollection() async {
     try {
+      // Get all records in the test collection
       final records = await pocketbaseClient
           .collection(testCollection)
           .getFullList();
 
+      // Delete each record
       for (final record in records) {
         await pocketbaseClient.collection(testCollection).delete(record.id);
       }
@@ -34,20 +56,24 @@ class IntegrationTestHelpers {
         print('🧹 Cleared ${records.length} test records');
       }
     } catch (e) {
+      // Collection might not exist or be empty, that's fine
       print('ℹ️ Collection clear: $e');
     }
   }
 
+  /// Setup method to be called in test setUpAll
   static Future<void> setupIntegrationTests() async {
+    // Connect to manually started PocketBase instance and authenticate
     await initializePocketBase();
 
+    // Verify connection
     try {
       await pocketbaseClient.health.check();
       print('✅ Connected to PocketBase at $pocketbaseUrl');
     } catch (e) {
       throw Exception(
         'Failed to connect to PocketBase. Make sure it\'s running at $pocketbaseUrl\n'
-        'Run: dart run scripts/start_pocketbase_with_schema.dart\n'
+        'Run: ./packages/kiss_pocketbase_repository/scripts/setup_test_collection_and_user.sh\n'
         'Error: $e',
       );
     }
@@ -55,6 +81,7 @@ class IntegrationTestHelpers {
     print('🎯 Integration tests ready to run');
   }
 
+  /// Clean up after all tests
   static Future<void> tearDownIntegrationTests() async {
     try {
       await clearTestCollection();

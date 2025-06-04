@@ -1,0 +1,22 @@
+{
+  "name": "test_users",
+  "type": "base",
+  "schema": [
+    {
+      "name": "name",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "age",
+      "type": "number",
+      "required": true
+    },
+    {
+      "name": "createdAt",
+      "type": "date",
+      "required": true
+    }
+  ],
+  "options": {}
+} 
