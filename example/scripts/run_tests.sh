@@ -32,7 +32,7 @@ echo "🧪 Running integration tests..."
 echo "📝 Test results:"
 echo ""
 
-flutter test integration_test/app_test.dart
+flutter test integration_test/all_integration_tests.dart
 TEST_EXIT_CODE=$?
 
 echo ""

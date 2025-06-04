@@ -25,3 +25,17 @@ doc/api/
 
 .flutter-plugins
 .flutter-plugins-dependencies
+
+# Cursor IDE
+.cursor/
+
+# Firebase debug logs
+firebase-debug.log
+firestore-debug.log
+
+# IntelliJ IDE
+.idea/
+*.iml
+
+# MacOs
+.DS_Store
