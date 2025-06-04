@@ -38,7 +38,7 @@ void main() {
 
       await repository.delete(user.id);
 
-      expect(() => repository.get(user.id), throwsA(isA<RepositoryException>()));
+      await expectLater(repository.get(user.id), throwsA(isA<RepositoryException>()));
     });
 
     test('should handle adding item with existing ID', () async {
@@ -50,16 +50,16 @@ void main() {
       final duplicate = TestUser(id: 'duplicate', name: 'Second', age: 30, createdAt: DateTime.now());
       final identifiedDuplicate = IdentifiedObject(duplicate.id, duplicate);
 
-      expect(() => repository.add(identifiedDuplicate), throwsA(isA<RepositoryException>()));
+      await expectLater(repository.add(identifiedDuplicate), throwsA(isA<RepositoryException>()));
     });
 
     test('should handle getting non-existent item', () async {
-      expect(() => repository.get('non-existent-id'), throwsA(isA<RepositoryException>()));
+      await expectLater(repository.get('non-existent-id'), throwsA(isA<RepositoryException>()));
     });
 
     test('should handle updating non-existent item', () async {
-      expect(
-        () => repository.update('non-existent', (user) => user.copyWith(name: 'Ghost')),
+      await expectLater(
+        repository.update('non-existent', (user) => user.copyWith(name: 'Ghost')),
         throwsA(isA<RepositoryException>()),
       );
     });
