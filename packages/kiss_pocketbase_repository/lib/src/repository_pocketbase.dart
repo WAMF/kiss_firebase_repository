@@ -109,8 +109,42 @@ class RepositoryPocketBase<T> extends Repository<T> {
 
   @override
   Future<List<T>> query({Query query = const AllQuery()}) async {
-    // TODO: Implement query functionality
-    throw UnimplementedError('Query functionality not yet implemented');
+    try {
+      String? filter;
+      String? sort;
+
+      // Handle AllQuery - no filter needed, but default sort by created descending
+      if (query is AllQuery) {
+        sort = '-created';
+      } else if (queryBuilder != null) {
+        // Use query builder to convert custom Query to PocketBase filter
+        filter = queryBuilder!.build(query);
+      } else {
+        // If we have a custom query but no query builder, throw error
+        throw RepositoryException(
+          message:
+              'Query builder required for custom queries. '
+              'Please provide a QueryBuilder<String> in the repository constructor.',
+        );
+      }
+
+      // Execute the query using PocketBase getFullList
+      final records = await client
+          .collection(collection)
+          .getFullList(
+            filter: filter,
+            sort: sort ?? '-created', // Default sort by created descending
+          );
+
+      // Convert PocketBase records to domain objects
+      return records.map((record) => fromPocketBase(record)).toList();
+    } on ClientException catch (e) {
+      throw RepositoryException(
+        message: 'Failed to query records: ${e.response ?? e.toString()}',
+      );
+    } catch (e) {
+      throw RepositoryException(message: 'Failed to query records: $e');
+    }
   }
 
   @override
@@ -181,9 +215,7 @@ class RepositoryPocketBase<T> extends Repository<T> {
           throw RepositoryException.alreadyExists('auto-generated');
         }
       }
-      throw RepositoryException(
-        message: 'Failed to add record: ${e.response}',
-      );
+      throw RepositoryException(message: 'Failed to add record: ${e.response}');
     } catch (e) {
       throw RepositoryException(message: 'Failed to add record: $e');
     }
