@@ -40,7 +40,6 @@ class RepositoryPocketBase<T> extends Repository<T> {
 
   @override
   Future<T> add(IdentifiedObject<T> item) async {
-    // Validate the ID format before attempting to create
     PocketBaseUtils.validateId(item.id);
 
     try {
@@ -66,15 +65,12 @@ class RepositoryPocketBase<T> extends Repository<T> {
   @override
   Future<T> update(String id, T Function(T current) updater) async {
     try {
-      // First get the current record
       final currentRecord = await client.collection(collection).getOne(id);
       final current = fromPocketBase(currentRecord);
 
-      // Apply the update function
       final updated = updater(current);
       final data = toPocketBase(updated);
 
-      // Update the record
       final updatedRecord = await client
           .collection(collection)
           .update(id, body: data);
@@ -113,14 +109,11 @@ class RepositoryPocketBase<T> extends Repository<T> {
       String? filter;
       String? sort;
 
-      // Handle AllQuery - no filter needed, but default sort by created descending
       if (query is AllQuery) {
         sort = '-created';
       } else if (queryBuilder != null) {
-        // Use query builder to convert custom Query to PocketBase filter
         filter = queryBuilder!.build(query);
       } else {
-        // If we have a custom query but no query builder, throw error
         throw RepositoryException(
           message:
               'Query builder required for custom queries. '
@@ -128,15 +121,13 @@ class RepositoryPocketBase<T> extends Repository<T> {
         );
       }
 
-      // Execute the query using PocketBase getFullList
       final records = await client
           .collection(collection)
           .getFullList(
             filter: filter,
-            sort: sort ?? '-created', // Default sort by created descending
+            sort: sort ?? '-created',
           );
 
-      // Convert PocketBase records to domain objects
       return records.map((record) => fromPocketBase(record)).toList();
     } on ClientException catch (e) {
       throw RepositoryException(
@@ -149,14 +140,115 @@ class RepositoryPocketBase<T> extends Repository<T> {
 
   @override
   Stream<T> stream(String id) {
-    // TODO: Implement real-time streaming
-    throw UnimplementedError('Streaming functionality not yet implemented');
+    PocketBaseUtils.validateId(id);
+
+    late StreamController<T> controller;
+    bool isSubscribed = false;
+
+    controller = StreamController<T>(
+      onListen: () async {
+        try {
+          await client.collection(collection).subscribe(id, (event) {
+            try {
+              final record = event.record;
+              if (record != null) {
+                final domainObject = fromPocketBase(record);
+                controller.add(domainObject);
+              }
+            } catch (e) {
+              controller.addError(
+                RepositoryException(
+                  message: 'Failed to process stream event: $e',
+                ),
+              );
+            }
+          });
+          isSubscribed = true;
+
+          try {
+            final initialData = await get(id);
+            controller.add(initialData);
+          } catch (e) {
+            // If record doesn't exist initially, that's ok - we'll get it when created
+            // Don't emit error, just wait for real-time events
+          }
+        } catch (e) {
+          controller.addError(
+            RepositoryException(
+              message: 'Failed to establish stream subscription: $e',
+            ),
+          );
+        }
+      },
+      onCancel: () async {
+        if (isSubscribed) {
+          try {
+            await client.collection(collection).unsubscribe(id);
+          } catch (e) {
+            // Log error but don't throw - cleanup should be best effort
+            print('Warning: Failed to unsubscribe from PocketBase stream: $e');
+          }
+        }
+      },
+    );
+
+    return controller.stream;
   }
 
   @override
   Stream<List<T>> streamQuery({Query query = const AllQuery()}) {
-    // TODO: Implement query streaming
-    throw UnimplementedError('Query streaming not yet implemented');
+    late StreamController<List<T>> controller;
+    bool isSubscribed = false;
+
+    controller = StreamController<List<T>>(
+      onListen: () async {
+        try {
+          await client.collection(collection).subscribe('*', (event) async {
+            try {
+              final results = await this.query(query: query);
+              controller.add(results);
+            } catch (e) {
+              controller.addError(
+                RepositoryException(
+                  message: 'Failed to process stream query event: $e',
+                ),
+              );
+            }
+          });
+          isSubscribed = true;
+
+          try {
+            final initialData = await this.query(query: query);
+            controller.add(initialData);
+          } catch (e) {
+            controller.addError(
+              RepositoryException(
+                message: 'Failed to get initial stream query data: $e',
+              ),
+            );
+          }
+        } catch (e) {
+          controller.addError(
+            RepositoryException(
+              message: 'Failed to establish stream query subscription: $e',
+            ),
+          );
+        }
+      },
+      onCancel: () async {
+        if (isSubscribed) {
+          try {
+            await client.collection(collection).unsubscribe('*');
+          } catch (e) {
+            print(
+              'Warning: Failed to unsubscribe from PocketBase stream query: $e',
+            );
+          }
+        }
+      },
+    );
+
+    return controller.stream;
   }
 
   @override
@@ -173,7 +265,6 @@ class RepositoryPocketBase<T> extends Repository<T> {
       }
     }
 
-    // If there were any exceptions, throw a batch exception
     if (exceptions.isNotEmpty) {
       throw RepositoryException(
         message:
@@ -198,7 +289,6 @@ class RepositoryPocketBase<T> extends Repository<T> {
       }
     }
 
-    // If there were any exceptions, throw a batch exception
     if (exceptions.isNotEmpty) {
       throw RepositoryException(
         message:
@@ -221,7 +311,6 @@ class RepositoryPocketBase<T> extends Repository<T> {
       }
     }
 
-    // If there were any exceptions, throw a batch exception
     if (exceptions.isNotEmpty) {
       throw RepositoryException(
         message:
