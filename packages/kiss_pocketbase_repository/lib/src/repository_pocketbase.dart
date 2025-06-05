@@ -93,7 +93,8 @@ class RepositoryPocketBase<T> extends Repository<T> {
       await client.collection(collection).delete(id);
     } on ClientException catch (e) {
       if (e.statusCode == 404) {
-        throw RepositoryException.notFound(id);
+        // Silently succeed for non-existent records
+        return;
       }
       throw RepositoryException(
         message: 'Failed to delete record: ${e.response}',
@@ -123,10 +124,7 @@ class RepositoryPocketBase<T> extends Repository<T> {
 
       final records = await client
           .collection(collection)
-          .getFullList(
-            filter: filter,
-            sort: sort ?? '-created',
-          );
+          .getFullList(filter: filter, sort: sort ?? '-created');
 
       return records.map((record) => fromPocketBase(record)).toList();
     } on ClientException catch (e) {
