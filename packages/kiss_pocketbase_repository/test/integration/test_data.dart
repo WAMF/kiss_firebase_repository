@@ -31,7 +31,7 @@ class TestUser {
 
   /// Convert TestUser to Map for PocketBase (excludes ID and created as they're auto-generated)
   Map<String, dynamic> toMap() {
-    return {'name': name, 'age': age};
+    return {'id': id, 'name': name, 'age': age, 'created': created.toIso8601String()};
   }
 
   /// Create a copy with updated fields

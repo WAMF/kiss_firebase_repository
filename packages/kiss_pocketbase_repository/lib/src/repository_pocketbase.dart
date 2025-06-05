@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:pocketbase/pocketbase.dart';
 import 'package:kiss_repository/kiss_repository.dart';
 
+import 'utils/pocketbase_utils.dart';
+
 class RepositoryPocketBase<T> extends Repository<T> {
   RepositoryPocketBase({
     required this.client,
@@ -38,13 +40,11 @@ class RepositoryPocketBase<T> extends Repository<T> {
 
   @override
   Future<T> add(IdentifiedObject<T> item) async {
+    // Validate the ID format before attempting to create
+    PocketBaseUtils.validateId(item.id);
+
     try {
       final data = toPocketBase(item.object);
-
-      // If ID is provided and not empty, include it
-      if (item.id.isNotEmpty) {
-        data['id'] = item.id;
-      }
 
       final record = await client.collection(collection).create(body: data);
       return fromPocketBase(record);
@@ -161,20 +161,73 @@ class RepositoryPocketBase<T> extends Repository<T> {
 
   @override
   Future<Iterable<T>> addAll(Iterable<IdentifiedObject<T>> items) async {
-    // TODO: Implement batch add (sequential for now)
-    throw UnimplementedError('Batch add not yet implemented');
+    final results = <T>[];
+    final exceptions = <String, Exception>{};
+
+    for (final item in items) {
+      try {
+        final result = await add(item);
+        results.add(result);
+      } catch (e) {
+        exceptions[item.id] = e is Exception ? e : Exception(e);
+      }
+    }
+
+    // If there were any exceptions, throw a batch exception
+    if (exceptions.isNotEmpty) {
+      throw RepositoryException(
+        message:
+            'Batch add failed for ${exceptions.length} items: ${exceptions.keys.join(', ')}',
+      );
+    }
+
+    return results;
   }
 
   @override
   Future<Iterable<T>> updateAll(Iterable<IdentifiedObject<T>> items) async {
-    // TODO: Implement batch update (sequential for now)
-    throw UnimplementedError('Batch update not yet implemented');
+    final results = <T>[];
+    final exceptions = <String, Exception>{};
+
+    for (final item in items) {
+      try {
+        final result = await update(item.id, (_) => item.object);
+        results.add(result);
+      } catch (e) {
+        exceptions[item.id] = e is Exception ? e : Exception(e);
+      }
+    }
+
+    // If there were any exceptions, throw a batch exception
+    if (exceptions.isNotEmpty) {
+      throw RepositoryException(
+        message:
+            'Batch update failed for ${exceptions.length} items: ${exceptions.keys.join(', ')}',
+      );
+    }
+
+    return results;
   }
 
   @override
   Future<void> deleteAll(Iterable<String> ids) async {
-    // TODO: Implement batch delete (sequential for now)
-    throw UnimplementedError('Batch delete not yet implemented');
+    final exceptions = <String, Exception>{};
+
+    for (final id in ids) {
+      try {
+        await delete(id);
+      } catch (e) {
+        exceptions[id] = e is Exception ? e : Exception(e);
+      }
+    }
+
+    // If there were any exceptions, throw a batch exception
+    if (exceptions.isNotEmpty) {
+      throw RepositoryException(
+        message:
+            'Batch delete failed for ${exceptions.length} items: ${exceptions.keys.join(', ')}',
+      );
+    }
   }
 
   @override
