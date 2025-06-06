@@ -133,3 +133,13 @@ dev_dependencies:
 - 🚧 Subscription management and cleanup (TODO)
 - ✅ Efficient query execution with proper sorting
 - ✅ Proper error handling and conversion 
+
+
+
+
+My TODOs
+
+- Firestore has class FirestoreIdentifiedObject<T>, why do we need it? Do we need it for Pocketbase?
+- IdentifiedObject<T> autoIdentify in Pocketbase does not do anything at all
+- Streaming tests are failing in pocketbase
+- pocketbase does not allow to write created field, so my test with custom created is failing

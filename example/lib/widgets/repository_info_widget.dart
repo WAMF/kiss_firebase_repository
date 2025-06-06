@@ -24,7 +24,7 @@ class RepositoryInfoWidget extends StatelessWidget {
           const Text('• Real-time streaming updates'),
           const Text('• CRUD operations (Create, Read, Update, Delete)'),
           const Text('• Custom Query system with QueryBuilder'),
-          const Text('• Search queries (QueryByName, QueryRecentUsers)'),
+          const Text('• Search queries (QueryByName, QueryMaxAge)'),
           const Text('• Error handling'),
           const Text('• Firebase emulator integration'),
           const SizedBox(height: 8),

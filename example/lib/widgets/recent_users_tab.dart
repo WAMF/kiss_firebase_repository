@@ -30,7 +30,7 @@ class RecentUsersTab extends StatelessWidget {
             margin: const EdgeInsets.symmetric(horizontal: 16),
             child: UserListWidget(
               userRepository: userRepository,
-              query: QueryRecentUsers(daysBack),
+              query: QueryByMaxAge(daysBack),
             ),
           ),
         ),

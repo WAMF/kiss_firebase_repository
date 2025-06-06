@@ -38,21 +38,21 @@ class QueryByEmail extends Query {
   String toString() => 'QueryByEmail(emailDomain: $emailDomain)';
 }
 
-class QueryRecentUsers extends Query {
-  final int daysAgo;
+class QueryByMaxAge extends Query {
+  final int maxAge;
 
-  const QueryRecentUsers(this.daysAgo);
+  const QueryByMaxAge(this.maxAge);
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is QueryRecentUsers &&
+      other is QueryByMaxAge &&
           runtimeType == other.runtimeType &&
-          daysAgo == other.daysAgo;
+          maxAge == other.maxAge;
 
   @override
-  int get hashCode => daysAgo.hashCode;
+  int get hashCode => maxAge.hashCode;
 
   @override
-  String toString() => 'QueryRecentUsers(daysAgo: $daysAgo)';
+  String toString() => 'QueryByMaxAge(maxAge: $maxAge)';
 }

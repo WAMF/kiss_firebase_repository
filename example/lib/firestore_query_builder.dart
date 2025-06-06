@@ -40,15 +40,13 @@ class FirestoreUserQueryBuilder
       }
     }
 
-    if (query is QueryRecentUsers) {
-      // Get users created within the last N days
-      final cutoffDate = DateTime.now().subtract(Duration(days: query.daysAgo));
+    if (query is QueryByMaxAge) {
       return baseQuery
-          .where('createdAt', isGreaterThan: cutoffDate)
-          .orderBy('createdAt', descending: true);
+          .where('age', isLessThanOrEqualTo: query.maxAge)
+          .orderBy('age', descending: true);
     }
 
-    // Default: return all users ordered by creation date
+    // Default: return all users ordered by creation date (newest first)
     return baseQuery.orderBy('createdAt', descending: true);
   }
 }

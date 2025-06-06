@@ -7,20 +7,42 @@ class TestUser {
   final int age;
   final DateTime createdAt;
 
-  TestUser({required this.id, required this.name, required this.age, required this.createdAt});
+  TestUser({
+    required this.id,
+    required this.name,
+    required this.age,
+    required this.createdAt,
+  });
 
-  Map<String, dynamic> toMap() => {'id': id, 'name': name, 'age': age, 'createdAt': createdAt.toIso8601String()};
+  Map<String, dynamic> toMap() => {
+    'id': id,
+    'name': name,
+    'age': age,
+    'createdAt': createdAt.toIso8601String(),
+  };
 
-  static TestUser fromMap(Map<String, dynamic> map) =>
-      TestUser(id: map['id'], name: map['name'], age: map['age'], createdAt: DateTime.parse(map['createdAt']));
+  static TestUser fromMap(Map<String, dynamic> map) => TestUser(
+    id: map['id'],
+    name: map['name'],
+    age: map['age'],
+    createdAt: DateTime.parse(map['createdAt']),
+  );
 
-  TestUser copyWith({String? id, String? name, int? age}) =>
-      TestUser(id: id ?? this.id, name: name ?? this.name, age: age ?? this.age, createdAt: createdAt);
+  TestUser copyWith({String? id, String? name, int? age}) => TestUser(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    age: age ?? this.age,
+    createdAt: createdAt,
+  );
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is TestUser && runtimeType == other.runtimeType && id == other.id && name == other.name && age == other.age;
+      other is TestUser &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          age == other.age;
 
   @override
   int get hashCode => id.hashCode ^ name.hashCode ^ age.hashCode;
@@ -36,18 +58,23 @@ class QueryByName extends Query {
   const QueryByName(this.namePrefix);
 }
 
-class QueryRecentUsers extends Query {
-  final int daysAgo;
-  const QueryRecentUsers(this.daysAgo);
+class QueryByMaxAge extends Query {
+  final int maxAge;
+  const QueryByMaxAge(this.maxAge);
 }
 
-class TestUserQueryBuilder implements QueryBuilder<firestore.Query<Map<String, dynamic>>> {
+class TestUserQueryBuilder
+    implements QueryBuilder<firestore.Query<Map<String, dynamic>>> {
   @override
   firestore.Query<Map<String, dynamic>> build(Query query) {
-    final baseQuery = firestore.FirebaseFirestore.instance.collection('test_users');
+    final baseQuery = firestore.FirebaseFirestore.instance.collection(
+      'test_users',
+    );
 
     if (query is QueryByAge) {
-      return baseQuery.where('age', isGreaterThanOrEqualTo: query.minAge).orderBy('age');
+      return baseQuery
+          .where('age', isGreaterThanOrEqualTo: query.minAge)
+          .orderBy('age');
     }
 
     if (query is QueryByName) {
@@ -57,11 +84,10 @@ class TestUserQueryBuilder implements QueryBuilder<firestore.Query<Map<String, d
           .orderBy('name');
     }
 
-    if (query is QueryRecentUsers) {
-      final cutoffDate = DateTime.now().subtract(Duration(days: query.daysAgo));
+    if (query is QueryByMaxAge) {
       return baseQuery
-          .where('createdAt', isGreaterThan: cutoffDate.toIso8601String())
-          .orderBy('createdAt', descending: true);
+          .where('age', isLessThanOrEqualTo: query.maxAge)
+          .orderBy('age', descending: true);
     }
 
     return baseQuery.orderBy('createdAt', descending: true);
