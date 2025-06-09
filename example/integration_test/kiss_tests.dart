@@ -16,7 +16,7 @@ void main() {
     await IntegrationTestHelpers.clearTestCollection();
   });
 
-  group('PocketBase Repository - Centralized CRUD Tests', () {
+  group('Firebase Repository - Centralized CRUD Tests', () {
     runBasicCrudTests(() => IntegrationTestHelpers.repository);
   });
 
@@ -34,5 +34,9 @@ void main() {
 
   group('Error Handling Tests', () {
     runBasicErrorTests(() => IntegrationTestHelpers.repository);
+  });
+
+  group('ID Management Tests', () {
+    runBasicIdTests(() => IntegrationTestHelpers.repository);
   });
 }
