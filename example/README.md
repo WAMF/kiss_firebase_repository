@@ -176,20 +176,53 @@ The app will automatically connect to the Firestore emulator and you can start a
 
 ## Integration Tests
 
-The example includes comprehensive integration tests in `integration_test/app_test.dart` that verify:
+The example includes **comprehensive integration tests** organized into **6 focused test modules** with **39 total tests**:
 
-- Repository CRUD operations
-- Auto-generated Firestore IDs
-- Query system functionality
-- Real-time streaming
-- Error handling
+### Test Organization
 
-Run them with:
+- **📄 basic_crud_test.dart** (5 tests) - CRUD operations & lifecycle testing
+- **📄 id_management_test.dart** (5 tests) - Auto-ID generation & management
+- **📄 batch_operations_test.dart** (5 tests) - Bulk operations & transactions  
+- **📄 query_filtering_test.dart** (7 tests) - Query system & filtering functionality
+- **📄 streaming_test.dart** (7 tests) - Real-time data streaming & subscriptions
+- **📄 error_handling_test.dart** (10 tests) - Edge cases & error scenarios
 
+### Shared Test Utilities
+
+- **📁 utils/test_data.dart** - TestUser model & custom query classes
+- **📁 utils/test_helpers.dart** - Common Firebase setup & test helpers
+
+### Running Tests
+
+Run all tests together:
 ```bash
 cd example
 ./scripts/run_tests.sh
 ```
+
+Or run individual test modules:
+```bash
+flutter test integration_test/basic_crud_test.dart
+flutter test integration_test/streaming_test.dart
+flutter test integration_test/error_handling_test.dart
+```
+
+Run all tests with the main test runner:
+```bash
+flutter test integration_test/all_integration_tests.dart
+```
+
+### What the Tests Verify
+
+The comprehensive test suite verifies:
+
+- ✅ **Repository CRUD operations** - Add, get, update, delete lifecycle
+- ✅ **Auto-generated Firestore IDs** - ID generation and uniqueness
+- ✅ **Batch operations** - Bulk add/update/delete with transaction handling
+- ✅ **Query system functionality** - Custom queries, filtering, and edge cases
+- ✅ **Real-time streaming** - Live data updates and subscription management
+- ✅ **Error handling** - Type errors, concurrent modifications, edge cases
+- ✅ **Firebase emulator integration** - Safe testing environment
 
 ## Architecture Benefits
 

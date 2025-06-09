@@ -206,11 +206,9 @@ class RepositoryFirestore<T> extends Repository<T> {
 
   @override
   Future<T> add(IdentifiedObject<T> item) async {
+    await _ensureNotExists(item.id);
+
     final doc = store.doc(_normaliseToFullPath(item.id));
-    final snapshot = await doc.get();
-    if (snapshot.exists) {
-      throw RepositoryException.alreadyExists(item.id);
-    }
     final json = RepositoryFirestore.typeConversionToFirebase.convert(
       source: toFirestore(item.object),
     );
@@ -255,12 +253,14 @@ class RepositoryFirestore<T> extends Repository<T> {
   @override
   Future<Iterable<T>> addAll(Iterable<IdentifiedObject<T>> items) async {
     final batch = store.batch();
+
     for (final item in items) {
-      final newFirestoreObject = store.collection(path).doc();
+      await _ensureNotExists(item.id);
+      final doc = store.doc(_normaliseToFullPath(item.id));
       final json = RepositoryFirestore.typeConversionToFirebase.convert(
         source: toFirestore(item.object),
       );
-      batch.set(newFirestoreObject, json);
+      batch.set(doc, json);
     }
     await batch.commit();
     return items.map((e) => e.object).toList(growable: false);
@@ -316,5 +316,13 @@ class RepositoryFirestore<T> extends Repository<T> {
     final autoIdentifiedObject =
         autoIdentify(object, updateObjectWithId: updateObjectWithId);
     return add(autoIdentifiedObject);
+  }
+
+  Future<void> _ensureNotExists(String id) async {
+    final doc = store.doc(_normaliseToFullPath(id));
+    final snapshot = await doc.get();
+    if (snapshot.exists) {
+      throw RepositoryException.alreadyExists(id);
+    }
   }
 }
