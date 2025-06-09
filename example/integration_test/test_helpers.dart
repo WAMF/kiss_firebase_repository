@@ -14,7 +14,7 @@ class FirestoreTestObjectQueryBuilder implements QueryBuilder<firestore.Query<Ma
     final baseQuery = firestore.FirebaseFirestore.instance.collection('test_objects');
 
     if (query is QueryByName) {
-      final prefix = query.namePrefix.toLowerCase();
+      final prefix = query.namePrefix;
       return baseQuery
           .where('name', isGreaterThanOrEqualTo: prefix)
           .where('name', isLessThan: '${prefix}\uf8ff')
@@ -29,6 +29,16 @@ class FirestoreTestObjectQueryBuilder implements QueryBuilder<firestore.Query<Ma
       return baseQuery
           .where('created', isLessThan: firestore.Timestamp.fromDate(query.date))
           .orderBy('created', descending: true);
+    }
+
+    if (query is QueryByExpiresAfter) {
+      return baseQuery.where('expires', isGreaterThan: firestore.Timestamp.fromDate(query.date)).orderBy('expires');
+    }
+
+    if (query is QueryByExpiresBefore) {
+      return baseQuery
+          .where('expires', isLessThan: firestore.Timestamp.fromDate(query.date))
+          .orderBy('expires', descending: true);
     }
 
     // Default: return all objects ordered by creation date (newest first)
@@ -62,10 +72,14 @@ class IntegrationTestHelpers {
         created: data['created'] is DateTime
             ? data['created'] as DateTime
             : (data['created'] as firestore.Timestamp).toDate(),
+        expires: data['expires'] is DateTime
+            ? data['expires'] as DateTime
+            : (data['expires'] as firestore.Timestamp).toDate(),
       ),
       toFirestore: (testObject) => {
         'name': testObject.name,
         'created': firestore.Timestamp.fromDate(testObject.created),
+        'expires': firestore.Timestamp.fromDate(testObject.expires),
       },
       queryBuilder: FirestoreTestObjectQueryBuilder(),
     );
