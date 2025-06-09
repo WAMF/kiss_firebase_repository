@@ -4,8 +4,8 @@ import 'package:kiss_firebase_repository/kiss_firebase_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:firebase_core/firebase_core.dart';
 
-import '../../../kiss_repository/integration_test/data/test_object.dart';
-import '../../../kiss_repository/integration_test/data/queries.dart';
+import '../../../kiss_repository/shared_test_logic/data/test_object.dart';
+import '../../../kiss_repository/shared_test_logic/data/queries.dart';
 
 /// Firebase-specific query builder for TestObject
 class FirestoreTestObjectQueryBuilder implements QueryBuilder<firestore.Query<Map<String, dynamic>>> {

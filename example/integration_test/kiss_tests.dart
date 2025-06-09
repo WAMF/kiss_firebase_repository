@@ -1,11 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'test_helpers.dart';
-import '../../../kiss_repository/integration_test/basic_crud_integration_test.dart';
-import '../../../kiss_repository/integration_test/basic_batch_integration_test.dart';
-import '../../../kiss_repository/integration_test/basic_query_integration_test.dart';
-import '../../../kiss_repository/integration_test/basic_streaming_integration_test.dart';
-import '../../../kiss_repository/integration_test/basic_error_integration_test.dart';
+import '../../../kiss_repository/integration_test/kiss_flutter_tests.dart';
 
 void main() {
   setUpAll(() async {
@@ -21,22 +17,22 @@ void main() {
   });
 
   group('PocketBase Repository - Centralized CRUD Tests', () {
-    runFlutterBasicCrudTests(() => IntegrationTestHelpers.repository);
+    runBasicCrudTests(() => IntegrationTestHelpers.repository);
   });
 
   group('Batch Operations Tests', () {
-    runFlutterBasicBatchTests(() => IntegrationTestHelpers.repository);
+    runBasicBatchTests(() => IntegrationTestHelpers.repository);
   });
 
   group('Query Filtering Tests', () {
-    runFlutterBasicQueryTests(() => IntegrationTestHelpers.repository);
+    runBasicQueryTests(() => IntegrationTestHelpers.repository);
   });
 
   group('Streaming Tests', () {
-    runFlutterBasicStreamingTests(() => IntegrationTestHelpers.repository);
+    runBasicStreamingTests(() => IntegrationTestHelpers.repository);
   });
 
   group('Error Handling Tests', () {
-    runFlutterBasicErrorTests(() => IntegrationTestHelpers.repository);
+    runBasicErrorTests(() => IntegrationTestHelpers.repository);
   });
 }
