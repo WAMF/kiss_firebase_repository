@@ -144,21 +144,37 @@ class RepositoryFirestore<T> extends Repository<T> {
   /// Creates a real-time stream of changes for a specific document.
   ///
   /// **Initial Emission**: Immediately emits existing data (BehaviorSubject-like).
-  /// **Deletion Behavior**: Firebase filters out deleted documents. Stream ends on deletion.
+  /// **Error**: Emits RepositoryException.notFound if document doesn't exist initially.
+  /// **Deletion Behavior**: Stream closes when document is deleted.
+
   @override
   Stream<T> stream(String id) {
-    return store.doc(_normaliseToFullPath(id)).snapshots().asyncMap((snapshot) async {
-      if (!snapshot.exists) {
-        throw RepositoryException.notFound(id);
-      }
-      final data = snapshot.data()!;
-      return fromFirestore(
-        snapshot.reference,
-        RepositoryFirestore.typeConversionFromFirebase.convert(
-          source: data,
-        ),
-      );
-    });
+    final controller = StreamController<T>();
+    bool hasEmitted = false;
+
+    final sub = store.doc(_normaliseToFullPath(id)).snapshots().listen(
+      (snapshot) {
+        if (!snapshot.exists) {
+          if (!hasEmitted) {
+            controller.addError(RepositoryException.notFound(id));
+          } else {
+            controller.close();
+          }
+          return;
+        }
+
+        hasEmitted = true;
+        final data = snapshot.data()!;
+        controller.add(fromFirestore(
+          snapshot.reference,
+          RepositoryFirestore.typeConversionFromFirebase.convert(source: data),
+        ));
+      },
+      onError: controller.addError,
+    );
+
+    controller.onCancel = () => sub.cancel();
+    return controller.stream;
   }
 
   @override
@@ -247,18 +263,23 @@ class RepositoryFirestore<T> extends Repository<T> {
 
   @override
   Future<Iterable<T>> addAll(Iterable<IdentifiedObject<T>> items) async {
-    final batch = store.batch();
+    try {
+      final batch = store.batch();
 
-    for (final item in items) {
-      await _ensureNotExists(item.id);
-      final doc = store.doc(_normaliseToFullPath(item.id));
-      final json = RepositoryFirestore.typeConversionToFirebase.convert(
-        source: toFirestore(item.object),
-      );
-      batch.set(doc, json);
+      for (final item in items) {
+        final doc = store.doc(_normaliseToFullPath(item.id));
+        final json = RepositoryFirestore.typeConversionToFirebase.convert(
+          source: toFirestore(item.object),
+        );
+        batch.set(doc, json);
+      }
+      await batch.commit();
+      return items.map((e) => e.object).toList(growable: false);
+    } on ArgumentError catch (e) {
+      throw RepositoryException(message: 'Invalid document path in batch operation: ${e.message}');
+    } on firestore.FirebaseException catch (e) {
+      throw RepositoryException(message: 'Batch operation failed: ${e.message}');
     }
-    await batch.commit();
-    return items.map((e) => e.object).toList(growable: false);
   }
 
   @override

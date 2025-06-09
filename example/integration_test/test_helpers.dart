@@ -17,7 +17,7 @@ class FirestoreTestObjectQueryBuilder implements QueryBuilder<firestore.Query<Ma
       final prefix = query.namePrefix;
       return baseQuery
           .where('name', isGreaterThanOrEqualTo: prefix)
-          .where('name', isLessThan: '${prefix}\uf8ff')
+          .where('name', isLessThan: '$prefix\uf8ff')
           .orderBy('name');
     }
 
