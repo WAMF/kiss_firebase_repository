@@ -6,9 +6,7 @@ import 'package:kiss_repository/kiss_repository.dart';
 
 /// Special IdentifiedObject subclass that generates IDs on-demand
 class FirestoreIdentifiedObject<T> extends IdentifiedObject<T> {
-  FirestoreIdentifiedObject(
-      T object, this._updateObjectWithId, this._repository)
-      : super('', object);
+  FirestoreIdentifiedObject(T object, this._updateObjectWithId, this._repository) : super('', object);
 
   final T Function(T object, String id) _updateObjectWithId;
   final RepositoryFirestore<T> _repository;
@@ -38,9 +36,7 @@ class FirestoreIdentifiedObject<T> extends IdentifiedObject<T> {
 
   /// Convenience factory method for creating objects with auto-generated IDs
   factory FirestoreIdentifiedObject.create(
-          T object,
-          T Function(T object, String id) updateObjectWithId,
-          RepositoryFirestore<T> repository) =>
+          T object, T Function(T object, String id) updateObjectWithId, RepositoryFirestore<T> repository) =>
       FirestoreIdentifiedObject(object, updateObjectWithId, repository);
 }
 
@@ -93,10 +89,8 @@ class RepositoryFirestore<T> extends Repository<T> {
   }) {
     this.store = store ?? firestore.FirebaseFirestore.instance;
   }
-  static final typeConversionFromFirebase =
-      MapConverter.typeConverstion(_firebaseToDartTypeConversion);
-  static final typeConversionToFirebase =
-      MapConverter.typeConverstion(_dartToFirebaseTypeConversion);
+  static final typeConversionFromFirebase = MapConverter.typeConverstion(_firebaseToDartTypeConversion);
+  static final typeConversionToFirebase = MapConverter.typeConverstion(_dartToFirebaseTypeConversion);
   late final firestore.FirebaseFirestore store;
   @override
   final String path;
@@ -123,8 +117,7 @@ class RepositoryFirestore<T> extends Repository<T> {
     if (!snapshot.exists) {
       throw RepositoryException.notFound(id);
     }
-    final firebaseData = RepositoryFirestore.typeConversionFromFirebase
-        .convert(source: snapshot.data() ?? {});
+    final firebaseData = RepositoryFirestore.typeConversionFromFirebase.convert(source: snapshot.data() ?? {});
     return fromFirestore(
       snapshot.reference,
       firebaseData,
@@ -148,15 +141,17 @@ class RepositoryFirestore<T> extends Repository<T> {
         .toList(growable: false);
   }
 
+  /// Creates a real-time stream of changes for a specific document.
+  ///
+  /// **Initial Emission**: Immediately emits existing data (BehaviorSubject-like).
+  /// **Deletion Behavior**: Firebase filters out deleted documents. Stream ends on deletion.
   @override
   Stream<T> stream(String id) {
-    return store
-        .doc(_normaliseToFullPath(id))
-        .snapshots()
-        .where((snapshot) => snapshot.exists)
-        .map((snapshot) {
-      final data =
-          snapshot.data()!; // Safe because we filtered non-existent docs
+    return store.doc(_normaliseToFullPath(id)).snapshots().asyncMap((snapshot) async {
+      if (!snapshot.exists) {
+        throw RepositoryException.notFound(id);
+      }
+      final data = snapshot.data()!;
       return fromFirestore(
         snapshot.reference,
         RepositoryFirestore.typeConversionFromFirebase.convert(
@@ -311,10 +306,8 @@ class RepositoryFirestore<T> extends Repository<T> {
   }
 
   @override
-  Future<T> addAutoIdentified(T object,
-      {T Function(T object, String id)? updateObjectWithId}) async {
-    final autoIdentifiedObject =
-        autoIdentify(object, updateObjectWithId: updateObjectWithId);
+  Future<T> addAutoIdentified(T object, {T Function(T object, String id)? updateObjectWithId}) async {
+    final autoIdentifiedObject = autoIdentify(object, updateObjectWithId: updateObjectWithId);
     return add(autoIdentifiedObject);
   }
 
