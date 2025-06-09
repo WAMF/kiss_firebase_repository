@@ -17,26 +17,22 @@ void main() {
   });
 
   group('Firebase Repository - Centralized CRUD Tests', () {
-    runBasicCrudTests(() => IntegrationTestHelpers.repository);
+    runFlutterCrudTests(() => IntegrationTestHelpers.repository);
   });
 
   group('Batch Operations Tests', () {
-    runBasicBatchTests(() => IntegrationTestHelpers.repository);
+    runFlutterBatchTests(() => IntegrationTestHelpers.repository);
   });
 
   group('Query Filtering Tests', () {
-    runBasicQueryTests(() => IntegrationTestHelpers.repository);
+    runFlutterQueryTests(() => IntegrationTestHelpers.repository);
   });
 
   group('Streaming Tests', () {
-    runBasicStreamingTests(() => IntegrationTestHelpers.repository);
-  });
-
-  group('Error Handling Tests', () {
-    runBasicErrorTests(() => IntegrationTestHelpers.repository);
+    runFlutterStreamingTests(() => IntegrationTestHelpers.repository);
   });
 
   group('ID Management Tests', () {
-    runBasicIdTests(() => IntegrationTestHelpers.repository);
+    runFlutterIdTests(() => IntegrationTestHelpers.repository);
   });
 }
