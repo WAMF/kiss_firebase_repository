@@ -4,8 +4,33 @@ import 'package:kiss_firebase_repository/kiss_firebase_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:firebase_core/firebase_core.dart';
 
-import '../../../kiss_repository/shared_test_logic/data/product_model.dart';
-import '../../../kiss_repository/shared_test_logic/data/queries.dart';
+import '../../kiss_repository/shared_test_logic/data/product_model.dart';
+
+/// Query classes for ProductModel
+class QueryByName extends Query {
+  final String namePrefix;
+  const QueryByName(this.namePrefix);
+}
+
+class QueryByCreatedAfter extends Query {
+  final DateTime date;
+  const QueryByCreatedAfter(this.date);
+}
+
+class QueryByCreatedBefore extends Query {
+  final DateTime date;
+  const QueryByCreatedBefore(this.date);
+}
+
+class QueryByPriceGreaterThan extends Query {
+  final double price;
+  const QueryByPriceGreaterThan(this.price);
+}
+
+class QueryByPriceLessThan extends Query {
+  final double price;
+  const QueryByPriceLessThan(this.price);
+}
 
 /// Firebase-specific query builder for ProductModel
 class FirestoreProductModelQueryBuilder implements QueryBuilder<firestore.Query<Map<String, dynamic>>> {
@@ -66,8 +91,8 @@ class IntegrationTestHelpers {
       path: testCollection,
       fromFirestore: (ref, data) => ProductModel(
         id: ref.id,
-        name: data['name'] as String,
-        price: (data['price'] as num).toDouble(),
+        name: data['name'] as String? ?? '',
+        price: (data['price'] as num?)?.toDouble() ?? 0.0,
         description: data['description'] as String? ?? '',
         created: data['created'] is DateTime
             ? data['created'] as DateTime
