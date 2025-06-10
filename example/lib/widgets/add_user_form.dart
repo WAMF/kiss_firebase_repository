@@ -1,62 +1,70 @@
 import 'package:flutter/material.dart';
 import 'package:kiss_firebase_repository/kiss_firebase_repository.dart';
-import 'package:kiss_firebase_repository_example/data_model.dart';
+import '../data_model.dart';
 
-class AddUserForm extends StatefulWidget {
-  final Repository<User> userRepository;
-  final VoidCallback? onUserAdded;
+class AddProductForm extends StatefulWidget {
+  final Repository<ProductModel> productRepository;
+  final VoidCallback? onProductAdded;
 
-  const AddUserForm({
+  const AddProductForm({
     super.key,
-    required this.userRepository,
-    this.onUserAdded,
+    required this.productRepository,
+    this.onProductAdded,
   });
 
   @override
-  State<AddUserForm> createState() => _AddUserFormState();
+  State<AddProductForm> createState() => _AddProductFormState();
 }
 
-class _AddUserFormState extends State<AddUserForm> {
+class _AddProductFormState extends State<AddProductForm> {
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _priceController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
   bool _isLoading = false;
 
   @override
   void dispose() {
     _nameController.dispose();
-    _emailController.dispose();
+    _priceController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
-  Future<void> _addUser() async {
-    if (_nameController.text.trim().isEmpty ||
-        _emailController.text.trim().isEmpty) {
-      _showSnackBar('Please fill in both name and email');
+  Future<void> _addProduct() async {
+    if (_nameController.text.trim().isEmpty || _priceController.text.trim().isEmpty) {
+      _showSnackBar('Please fill in both name and price');
+      return;
+    }
+
+    final priceText = _priceController.text.trim();
+    final price = double.tryParse(priceText);
+    if (price == null || price < 0) {
+      _showSnackBar('Please enter a valid price');
       return;
     }
 
     setState(() => _isLoading = true);
 
     try {
-      final user = User(
-        id: '', // Will be auto-generated
+      final product = ProductModel.create(
         name: _nameController.text.trim(),
-        email: _emailController.text.trim(),
-        createdAt: DateTime.now(),
+        price: price,
+        description: _descriptionController.text.trim(),
       );
 
-      // Create user with auto-generated Firestore ID
-      await widget.userRepository.addAutoIdentified(
-        user,
-        updateObjectWithId: (user, id) => user.copyWith(id: id),
+      // Create product with auto-generated Firestore ID
+      await widget.productRepository.addAutoIdentified(
+        product,
+        updateObjectWithId: (product, id) => product.copyWith(id: id),
       );
 
       _nameController.clear();
-      _emailController.clear();
-      _showSnackBar('User added successfully!');
-      widget.onUserAdded?.call();
+      _priceController.clear();
+      _descriptionController.clear();
+      _showSnackBar('Product added successfully!');
+      widget.onProductAdded?.call();
     } catch (e) {
-      _showSnackBar('Error adding user: $e');
+      _showSnackBar('Error adding product: $e');
     } finally {
       setState(() => _isLoading = false);
     }
@@ -81,7 +89,7 @@ class _AddUserFormState extends State<AddUserForm> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Text(
-            'Add New User',
+            'Add New Product',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
@@ -99,19 +107,29 @@ class _AddUserFormState extends State<AddUserForm> {
               const SizedBox(width: 12),
               Expanded(
                 child: TextField(
-                  controller: _emailController,
+                  controller: _priceController,
                   decoration: const InputDecoration(
-                    labelText: 'Email',
+                    labelText: 'Price',
                     border: OutlineInputBorder(),
+                    prefixText: '\$',
                   ),
-                  keyboardType: TextInputType.emailAddress,
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
                 ),
               ),
             ],
           ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _descriptionController,
+            decoration: const InputDecoration(
+              labelText: 'Description (optional)',
+              border: OutlineInputBorder(),
+            ),
+            maxLines: 2,
+          ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
-            onPressed: _isLoading ? null : _addUser,
+            onPressed: _isLoading ? null : _addProduct,
             icon: _isLoading
                 ? const SizedBox(
                     width: 16,
@@ -119,7 +137,7 @@ class _AddUserFormState extends State<AddUserForm> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.add),
-            label: Text(_isLoading ? 'Adding...' : 'Add User'),
+            label: Text(_isLoading ? 'Adding...' : 'Add Product'),
           ),
         ],
       ),

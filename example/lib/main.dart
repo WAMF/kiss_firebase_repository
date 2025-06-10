@@ -23,8 +23,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:kiss_firebase_repository/kiss_firebase_repository.dart';
-import 'package:kiss_firebase_repository_example/data_model.dart';
-import 'package:kiss_firebase_repository_example/firestore_query_builder.dart';
+import 'data_model.dart';
+import 'firestore_query_builder.dart';
 import 'widgets/add_user_form.dart';
 import 'widgets/user_list_widget.dart';
 import 'widgets/search_tab.dart';
@@ -79,21 +79,20 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
         useMaterial3: true,
       ),
-      home: const UserManagementPage(),
+      home: const ProductManagementPage(),
     );
   }
 }
 
-class UserManagementPage extends StatefulWidget {
-  const UserManagementPage({super.key});
+class ProductManagementPage extends StatefulWidget {
+  const ProductManagementPage({super.key});
 
   @override
-  State<UserManagementPage> createState() => _UserManagementPageState();
+  State<ProductManagementPage> createState() => _ProductManagementPageState();
 }
 
-class _UserManagementPageState extends State<UserManagementPage>
-    with TickerProviderStateMixin {
-  late final RepositoryFirestore<User> _userRepository;
+class _ProductManagementPageState extends State<ProductManagementPage> with TickerProviderStateMixin {
+  late final RepositoryFirestore<ProductModel> _productRepository;
   late final TabController _tabController;
 
   @override
@@ -104,29 +103,31 @@ class _UserManagementPageState extends State<UserManagementPage>
   }
 
   void _initializeRepository() {
-    const collectionPath = 'users';
-    _userRepository = RepositoryFirestore<User>(
+    const collectionPath = 'products';
+    _productRepository = RepositoryFirestore<ProductModel>(
       path: collectionPath,
-      toFirestore: (user) => {
-        'id': user.id,
-        'name': user.name,
-        'email': user.email,
-        'createdAt': user.createdAt,
+      toFirestore: (product) => {
+        'id': product.id,
+        'name': product.name,
+        'price': product.price,
+        'description': product.description,
+        'created': firestore.Timestamp.fromDate(product.created),
       },
-      fromFirestore: (ref, data) => User(
+      fromFirestore: (ref, data) => ProductModel(
         id: ref.id,
         name: data['name'] ?? '',
-        email: data['email'] ?? '',
-        createdAt: data['createdAt'] as DateTime,
+        price: (data['price'] ?? 0.0).toDouble(),
+        description: data['description'] ?? '',
+        created: (data['created'] as firestore.Timestamp).toDate(),
       ),
-      queryBuilder: FirestoreUserQueryBuilder(collectionPath),
+      queryBuilder: FirestoreProductModelQueryBuilder(),
     );
   }
 
   @override
   void dispose() {
     _tabController.dispose();
-    _userRepository.dispose();
+    _productRepository.dispose();
     super.dispose();
   }
 
@@ -139,7 +140,7 @@ class _UserManagementPageState extends State<UserManagementPage>
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(icon: Icon(Icons.list), text: 'All Users'),
+            Tab(icon: Icon(Icons.list), text: 'All Products'),
             Tab(icon: Icon(Icons.search), text: 'Search'),
             Tab(icon: Icon(Icons.schedule), text: 'Recent'),
           ],
@@ -147,17 +148,17 @@ class _UserManagementPageState extends State<UserManagementPage>
       ),
       body: Column(
         children: [
-          // Add User Form
-          AddUserForm(userRepository: _userRepository),
+          // Add Product Form
+          AddProductForm(productRepository: _productRepository),
 
           // Tabbed Content
           Expanded(
             child: TabBarView(
               controller: _tabController,
               children: [
-                UserListWidget(userRepository: _userRepository),
-                SearchTab(userRepository: _userRepository),
-                RecentUsersTab(userRepository: _userRepository),
+                ProductListWidget(productRepository: _productRepository),
+                SearchTab(productRepository: _productRepository),
+                RecentProductsTab(productRepository: _productRepository),
               ],
             ),
           ),

@@ -4,14 +4,14 @@ import 'package:kiss_firebase_repository/kiss_firebase_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:firebase_core/firebase_core.dart';
 
-import '../../../kiss_repository/shared_test_logic/data/test_object.dart';
+import '../../../kiss_repository/shared_test_logic/data/product_model.dart';
 import '../../../kiss_repository/shared_test_logic/data/queries.dart';
 
-/// Firebase-specific query builder for TestObject
-class FirestoreTestObjectQueryBuilder implements QueryBuilder<firestore.Query<Map<String, dynamic>>> {
+/// Firebase-specific query builder for ProductModel
+class FirestoreProductModelQueryBuilder implements QueryBuilder<firestore.Query<Map<String, dynamic>>> {
   @override
   firestore.Query<Map<String, dynamic>> build(Query query) {
-    final baseQuery = firestore.FirebaseFirestore.instance.collection('test_objects');
+    final baseQuery = firestore.FirebaseFirestore.instance.collection('products');
 
     if (query is QueryByName) {
       final prefix = query.namePrefix;
@@ -31,14 +31,12 @@ class FirestoreTestObjectQueryBuilder implements QueryBuilder<firestore.Query<Ma
           .orderBy('created', descending: true);
     }
 
-    if (query is QueryByExpiresAfter) {
-      return baseQuery.where('expires', isGreaterThan: firestore.Timestamp.fromDate(query.date)).orderBy('expires');
+    if (query is QueryByPriceGreaterThan) {
+      return baseQuery.where('price', isGreaterThan: query.price).orderBy('price');
     }
 
-    if (query is QueryByExpiresBefore) {
-      return baseQuery
-          .where('expires', isLessThan: firestore.Timestamp.fromDate(query.date))
-          .orderBy('expires', descending: true);
+    if (query is QueryByPriceLessThan) {
+      return baseQuery.where('price', isLessThan: query.price).orderBy('price', descending: true);
     }
 
     // Default: return all objects ordered by creation date (newest first)
@@ -48,8 +46,8 @@ class FirestoreTestObjectQueryBuilder implements QueryBuilder<firestore.Query<Ma
 
 /// Shared test helpers for integration tests
 class IntegrationTestHelpers {
-  static late Repository<TestObject> repository;
-  static const String testCollection = 'test_objects';
+  static late Repository<ProductModel> repository;
+  static const String testCollection = 'products';
 
   /// Initialize Firebase and repository for integration tests
   static Future<void> initializeFirebase() async {
@@ -64,24 +62,24 @@ class IntegrationTestHelpers {
 
     firestore.FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
 
-    repository = RepositoryFirestore<TestObject>(
+    repository = RepositoryFirestore<ProductModel>(
       path: testCollection,
-      fromFirestore: (ref, data) => TestObject(
+      fromFirestore: (ref, data) => ProductModel(
         id: ref.id,
         name: data['name'] as String,
+        price: (data['price'] as num).toDouble(),
+        description: data['description'] as String? ?? '',
         created: data['created'] is DateTime
             ? data['created'] as DateTime
             : (data['created'] as firestore.Timestamp).toDate(),
-        expires: data['expires'] is DateTime
-            ? data['expires'] as DateTime
-            : (data['expires'] as firestore.Timestamp).toDate(),
       ),
-      toFirestore: (testObject) => {
-        'name': testObject.name,
-        'created': firestore.Timestamp.fromDate(testObject.created),
-        'expires': firestore.Timestamp.fromDate(testObject.expires),
+      toFirestore: (productModel) => {
+        'name': productModel.name,
+        'price': productModel.price,
+        'description': productModel.description,
+        'created': firestore.Timestamp.fromDate(productModel.created),
       },
-      queryBuilder: FirestoreTestObjectQueryBuilder(),
+      queryBuilder: FirestoreProductModelQueryBuilder(),
     );
   }
 

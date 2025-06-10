@@ -1,33 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:kiss_firebase_repository/kiss_firebase_repository.dart';
-import 'package:kiss_firebase_repository_example/data_model.dart';
+import '../data_model.dart';
 
-class UserListWidget extends StatelessWidget {
-  final Repository<User> userRepository;
+class ProductListWidget extends StatelessWidget {
+  final Repository<ProductModel> productRepository;
   final Query query;
 
-  const UserListWidget({
+  const ProductListWidget({
     super.key,
-    required this.userRepository,
+    required this.productRepository,
     this.query = const AllQuery(),
   });
 
-  Future<void> _deleteUser(BuildContext context, String userId) async {
+  Future<void> _deleteProduct(BuildContext context, String productId) async {
     try {
-      await userRepository.delete(userId);
+      await productRepository.delete(productId);
       if (context.mounted) {
-        _showSnackBar(context, 'User deleted successfully!');
+        _showSnackBar(context, 'Product deleted successfully!');
       }
     } catch (e) {
       if (context.mounted) {
-        _showSnackBar(context, 'Error deleting user: $e');
+        _showSnackBar(context, 'Error deleting product: $e');
       }
     }
   }
 
-  Future<void> _updateUserName(
+  Future<void> _updateProductName(
     BuildContext context,
-    String userId,
+    String productId,
     String currentName,
   ) async {
     final TextEditingController controller = TextEditingController(
@@ -37,7 +37,7 @@ class UserListWidget extends StatelessWidget {
     final newName = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Update User Name'),
+        title: const Text('Update Product Name'),
         content: TextField(
           controller: controller,
           decoration: const InputDecoration(hintText: 'Enter new name'),
@@ -57,16 +57,16 @@ class UserListWidget extends StatelessWidget {
 
     if (newName != null && newName.isNotEmpty && newName != currentName) {
       try {
-        await userRepository.update(
-          userId,
-          (user) => user.copyWith(name: newName),
+        await productRepository.update(
+          productId,
+          (product) => product.copyWith(name: newName),
         );
         if (context.mounted) {
-          _showSnackBar(context, 'User name updated successfully!');
+          _showSnackBar(context, 'Product name updated successfully!');
         }
       } catch (e) {
         if (context.mounted) {
-          _showSnackBar(context, 'Error updating user: $e');
+          _showSnackBar(context, 'Error updating product: $e');
         }
       }
     }
@@ -80,8 +80,8 @@ class UserListWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<User>>(
-      stream: userRepository.streamQuery(query: query),
+    return StreamBuilder<List<ProductModel>>(
+      stream: productRepository.streamQuery(query: query),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -106,18 +106,18 @@ class UserListWidget extends StatelessWidget {
           );
         }
 
-        final users = snapshot.data ?? [];
+        final products = snapshot.data ?? [];
 
-        if (users.isEmpty) {
+        if (products.isEmpty) {
           return const Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.people_outline, size: 48, color: Colors.grey),
+                Icon(Icons.inventory_outlined, size: 48, color: Colors.grey),
                 SizedBox(height: 16),
-                Text('No users found'),
+                Text('No products found'),
                 Text(
-                  'Try adjusting your search or add some users',
+                  'Try adjusting your search or add some products',
                   style: TextStyle(color: Colors.grey),
                 ),
               ],
@@ -126,23 +126,28 @@ class UserListWidget extends StatelessWidget {
         }
 
         return ListView.builder(
-          itemCount: users.length,
+          itemCount: products.length,
           itemBuilder: (context, index) {
-            final user = users[index];
+            final product = products[index];
             return Card(
               child: ListTile(
                 leading: CircleAvatar(
                   child: Text(
-                    user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+                    product.name.isNotEmpty ? product.name[0].toUpperCase() : '?',
                   ),
                 ),
-                title: Text(user.name),
+                title: Text(product.name),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(user.email),
+                    Text('\$${product.price.toStringAsFixed(2)}'),
+                    if (product.description.isNotEmpty)
+                      Text(
+                        product.description,
+                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
                     Text(
-                      'Created: ${user.createdAt.toLocal().toString().split('.')[0]}',
+                      'Created: ${product.created.toLocal().toString().split('.')[0]}',
                       style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ],
@@ -152,12 +157,11 @@ class UserListWidget extends StatelessWidget {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.edit),
-                      onPressed: () =>
-                          _updateUserName(context, user.id, user.name),
+                      onPressed: () => _updateProductName(context, product.id, product.name),
                     ),
                     IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _deleteUser(context, user.id),
+                      onPressed: () => _deleteProduct(context, product.id),
                     ),
                   ],
                 ),
