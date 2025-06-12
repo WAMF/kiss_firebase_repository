@@ -33,7 +33,7 @@ class QueryByPriceLessThan extends Query {
 }
 
 /// Firebase-specific query builder for ProductModel
-class FirestoreProductModelQueryBuilder implements QueryBuilder<firestore.Query<Map<String, dynamic>>> {
+class TestFirestoreProductQueryBuilder implements QueryBuilder<firestore.Query<Map<String, dynamic>>> {
   @override
   firestore.Query<Map<String, dynamic>> build(Query query) {
     final baseQuery = firestore.FirebaseFirestore.instance.collection('products');
@@ -104,7 +104,7 @@ class IntegrationTestHelpers {
         'description': productModel.description,
         'created': firestore.Timestamp.fromDate(productModel.created),
       },
-      queryBuilder: FirestoreProductModelQueryBuilder(),
+      queryBuilder: TestFirestoreProductQueryBuilder(),
     );
   }
 
