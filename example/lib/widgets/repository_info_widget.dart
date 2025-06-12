@@ -24,12 +24,13 @@ class RepositoryInfoWidget extends StatelessWidget {
           const Text('• Real-time streaming updates'),
           const Text('• CRUD operations (Create, Read, Update, Delete)'),
           const Text('• Custom Query system with QueryBuilder'),
-          const Text('• Search queries (QueryByName, QueryRecentUsers)'),
+          const Text('• Search queries (QueryByName, QueryByCreatedAfter/Before)'),
+          const Text('• Price-based queries (QueryByPriceGreaterThan/LessThan)'),
           const Text('• Error handling'),
           const Text('• Firebase emulator integration'),
           const SizedBox(height: 8),
           Text(
-            'Collection: users | Query System: UserQueryBuilder',
+            'Collection: products | Query System: ProductModelQueryBuilder',
             style: TextStyle(
               fontSize: 12,
               color: Theme.of(context).colorScheme.onSurfaceVariant,

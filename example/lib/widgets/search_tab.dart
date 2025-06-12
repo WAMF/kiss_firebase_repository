@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:kiss_firebase_repository/kiss_firebase_repository.dart';
-import 'package:kiss_firebase_repository_example/data_model.dart';
-import 'package:kiss_firebase_repository_example/queries.dart';
+import '../data_model.dart';
+import '../queries.dart';
 import 'user_list_widget.dart';
 
 class SearchTab extends StatefulWidget {
-  final Repository<User> userRepository;
+  final Repository<ProductModel> productRepository;
 
-  const SearchTab({super.key, required this.userRepository});
+  const SearchTab({super.key, required this.productRepository});
 
   @override
   State<SearchTab> createState() => _SearchTabState();
@@ -33,7 +33,7 @@ class _SearchTabState extends State<SearchTab> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text(
-                'Search Users',
+                'Search Products',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
@@ -41,7 +41,7 @@ class _SearchTabState extends State<SearchTab> {
                 controller: _searchController,
                 decoration: const InputDecoration(
                   labelText: 'Search by name',
-                  hintText: 'Enter name to search...',
+                  hintText: 'Enter product name to search...',
                   prefixIcon: Icon(Icons.search),
                   border: OutlineInputBorder(),
                 ),
@@ -82,9 +82,7 @@ class _SearchTabState extends State<SearchTab> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  _searchController.text.isEmpty
-                      ? 'All Users'
-                      : 'Search Results for "${_searchController.text}"',
+                  _searchController.text.isEmpty ? 'All Products' : 'Search Results for "${_searchController.text}"',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -93,9 +91,9 @@ class _SearchTabState extends State<SearchTab> {
                 const SizedBox(height: 8),
                 Expanded(
                   child: _searchController.text.isEmpty
-                      ? UserListWidget(userRepository: widget.userRepository)
-                      : UserListWidget(
-                          userRepository: widget.userRepository,
+                      ? ProductListWidget(productRepository: widget.productRepository)
+                      : ProductListWidget(
+                          productRepository: widget.productRepository,
                           query: QueryByName(_searchController.text),
                         ),
                 ),

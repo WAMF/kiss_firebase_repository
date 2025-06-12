@@ -1,58 +1,26 @@
-import 'package:kiss_firebase_repository/kiss_firebase_repository.dart';
+import 'package:kiss_repository/kiss_repository.dart';
 
 class QueryByName extends Query {
-  final String searchTerm;
-
-  const QueryByName(this.searchTerm);
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is QueryByName &&
-          runtimeType == other.runtimeType &&
-          searchTerm == other.searchTerm;
-
-  @override
-  int get hashCode => searchTerm.hashCode;
-
-  @override
-  String toString() => 'QueryByName(searchTerm: $searchTerm)';
+  final String namePrefix;
+  const QueryByName(this.namePrefix);
 }
 
-class QueryByEmail extends Query {
-  final String emailDomain;
-
-  const QueryByEmail(this.emailDomain);
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is QueryByEmail &&
-          runtimeType == other.runtimeType &&
-          emailDomain == other.emailDomain;
-
-  @override
-  int get hashCode => emailDomain.hashCode;
-
-  @override
-  String toString() => 'QueryByEmail(emailDomain: $emailDomain)';
+class QueryByCreatedAfter extends Query {
+  final DateTime date;
+  const QueryByCreatedAfter(this.date);
 }
 
-class QueryRecentUsers extends Query {
-  final int daysAgo;
+class QueryByCreatedBefore extends Query {
+  final DateTime date;
+  const QueryByCreatedBefore(this.date);
+}
 
-  const QueryRecentUsers(this.daysAgo);
+class QueryByPriceGreaterThan extends Query {
+  final double price;
+  const QueryByPriceGreaterThan(this.price);
+}
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is QueryRecentUsers &&
-          runtimeType == other.runtimeType &&
-          daysAgo == other.daysAgo;
-
-  @override
-  int get hashCode => daysAgo.hashCode;
-
-  @override
-  String toString() => 'QueryRecentUsers(daysAgo: $daysAgo)';
+class QueryByPriceLessThan extends Query {
+  final double price;
+  const QueryByPriceLessThan(this.price);
 }

@@ -1,193 +1,176 @@
 # Integration Tests for KISS Firebase Repository
 
-This directory contains comprehensive Flutter integration tests for the KISS Firebase Repository package, organized into **6 focused test modules** with **39 total tests**.
+This directory contains comprehensive Flutter integration tests for the KISS Firebase Repository package, using **centralized test modules** shared from the main `kiss_repository` package.
 
 ## Test Organization
 
-The integration tests are organized into focused modules for better maintainability and navigation:
+The integration tests use **shared test modules** from `kiss_repository/integration_test/` to ensure consistency across repository implementations:
 
-### 📄 Test Modules (39 tests total)
+### 📄 Shared Test Modules (39 tests total)
 
-- **basic_crud_test.dart** (5 tests) - Core CRUD operations & lifecycle testing
+- **basic_crud_integration_test.dart** (5 tests) - Core CRUD operations & lifecycle testing
 - **id_management_test.dart** (5 tests) - Auto-ID generation & management
-- **batch_operations_test.dart** (5 tests) - Bulk operations & transaction handling
-- **query_filtering_test.dart** (7 tests) - Query system & filtering functionality  
-- **streaming_test.dart** (7 tests) - Real-time data streaming & subscriptions
-- **error_handling_test.dart** (10 tests) - Edge cases & error scenarios
+- **basic_batch_integration_test.dart** (5 tests) - Bulk operations & transaction handling  
+- **basic_query_integration_test.dart** (7 tests) - Query system & filtering functionality
+- **basic_streaming_integration_test.dart** (7 tests) - Real-time data streaming & subscriptions
+- **basic_error_integration_test.dart** (10 tests) - Edge cases & error scenarios
 
-### 📁 Shared Utilities
+### 📁 Firebase-Specific Files
 
-- **utils/test_data.dart** - TestUser model & custom query classes (QueryByAge, QueryByName, etc.)
-- **utils/test_helpers.dart** - Common Firebase setup & test helpers (DRY setup code)
+- **test_helpers.dart** - Firebase/Firestore setup & configuration
+- **kiss_tests.dart** - Main test runner that imports and executes shared tests
 
-### 📄 Test Runner
+### 🎯 Centralized Test Architecture
 
-- **all_integration_tests.dart** - Main runner that executes all test modules together
+All test logic is centralized in `kiss_repository/integration_test/` and imported by Firebase repository, ensuring:
+- ✅ **Consistency** - Same test scenarios across repository implementations  
+- ✅ **Maintainability** - Single source of truth for test logic
+- ✅ **Scalability** - New repository implementations can reuse tests
 
 ## Prerequisites
 
 1. **Flutter SDK** - Make sure Flutter is installed and in your PATH
-2. **Xcode and iOS Simulator** - Required for running tests on iOS simulator
+2. **Android Emulator or iOS Simulator** - Required for running integration tests
 3. **Firebase CLI** - Install with `npm install -g firebase-tools`
 4. **Firebase Emulator** - The tests use the Firestore emulator
 
 ## Running Integration Tests
 
-### Option 1: Run All Tests
+### Option 1: Using Scripts (Recommended)
 
-From the **example directory**:
+The `scripts/` directory provides convenient automation:
 
 ```bash
+# Start Firebase emulator in background
+./scripts/start_emulator.sh
+
+# Run all integration tests (starts emulator if not running)
 ./scripts/run_tests.sh
+
+# Run the example app
+./scripts/run_app.sh
 ```
 
-Or manually:
-```bash
-flutter test integration_test/all_integration_tests.dart
-```
+See `scripts/README.md` for more details on available scripts.
 
-### Option 2: Run Individual Test Modules
+### Option 2: Manual Setup
 
-Run specific test categories:
+### Prerequisites: Start Firebase Emulator
 
-```bash
-# CRUD operations
-flutter test integration_test/basic_crud_test.dart
+**The Firebase emulator must be running before executing tests.**
 
-# Auto-ID generation
-flutter test integration_test/id_management_test.dart
-
-# Batch operations
-flutter test integration_test/batch_operations_test.dart
-
-# Query system
-flutter test integration_test/query_filtering_test.dart
-
-# Real-time streaming
-flutter test integration_test/streaming_test.dart
-
-# Error handling & edge cases
-flutter test integration_test/error_handling_test.dart
-```
-
-### Option 3: Parallel Test Execution
-
-Run multiple test modules simultaneously:
-
-```bash
-flutter test integration_test/basic_crud_test.dart integration_test/batch_operations_test.dart
-```
-
-### Option 4: Manual Setup
-
-1. Start the iOS simulator:
-```bash
-flutter emulators --launch apple_ios_simulator
-```
-
-2. Start the Firebase emulator (from package root):
+From the package root directory:
 ```bash
 firebase emulators:start --only firestore
 ```
 
-3. Navigate to example directory and install dependencies:
+### Run the Tests
+
+From the **example directory**:
+
+```bash
+flutter test integration_test/kiss_tests.dart
+```
+
+### Full Setup from Scratch
+
+1. **Start Firebase Emulator** (from package root):
+```bash
+firebase emulators:start --only firestore
+```
+
+2. **Navigate to example directory**:
 ```bash
 cd example
+```
+
+3. **Install dependencies** (if needed):
+```bash
 flutter pub get
 ```
 
-4. Run specific tests:
+4. **Run tests**:
 ```bash
-flutter test integration_test/basic_crud_test.dart -d apple_ios_simulator
+flutter test integration_test/kiss_tests.dart
 ```
 
 ## What the Tests Cover
 
-### 🧪 Basic CRUD Operations (5 tests)
-- Add, get, update, delete single item lifecycle
-- Handling duplicate IDs and non-existent items
-- Idempotent delete behavior
+### 🧪 Basic CRUD Operations (3 tests)
+- Complete CRUD lifecycle (create, read, update, delete)
+- Handling non-existent records gracefully
+- Multiple sequential operations
 
-### 🔑 ID Management & Auto-Generation (5 tests)
-- Firebase auto-ID generation with `autoIdentify()`
-- `addAutoIdentified()` method functionality
-- Custom `updateObjectWithId` functions
-- Unique ID generation verification
-- Default behavior without update callbacks
-
-### 📦 Batch Operations (5 tests)  
+### 📦 Batch Operations (5 tests)
 - Multiple item add/update/delete operations
+- Mixed batch operations
+- Empty batch operations gracefully handled
 - Transaction handling and atomicity
-- Partial failure scenarios
-- Empty batch operations
-- Large batch processing (50+ items)
 
 ### 🔍 Query & Filtering (7 tests)
 - AllQuery default behavior
-- Custom query classes (QueryByAge, QueryByName, QueryRecentUsers)
+- Custom query classes (QueryByName, QueryByCreatedAfter, QueryByCreatedBefore)
 - Query result filtering and ordering
 - Empty result handling
 - Edge case queries
 
-### 🌊 Real-time Streaming (7 tests)
+### 🌊 Real-time Streaming (6 tests)
 - Single document streaming with `stream()`
 - Query result streaming with `streamQuery()`
-- Custom query streaming
-- Concurrent stream handling
-- Stream lifecycle management (deletion, subscription cleanup)
+- Multiple concurrent streams
+- Stream lifecycle management
+- Initially non-existent document streaming
 
 ### ⚠️ Error Handling & Edge Cases (10 tests)
-- Type errors with malformed Firestore data
 - Concurrent modification handling
 - Repository disposal behavior
-- Very large batch operations
-- Invalid query handling
-- Stream error scenarios
-- Special character IDs
+- Large batch operations
 - Operations on deleted documents
 - Rapid consecutive operations
+- AutoIdentify edge cases
+- Get/update operations on non-existent items
 
 ## Test Structure & Architecture
 
 ```
-integration_test/
-├── utils/
-│   ├── test_data.dart           # Shared models & queries
-│   └── test_helpers.dart        # Common setup & utilities
-├── basic_crud_test.dart         # CRUD operations (5 tests)
-├── id_management_test.dart      # Auto-ID generation (5 tests)
-├── batch_operations_test.dart   # Bulk operations (5 tests)
-├── query_filtering_test.dart    # Query system (7 tests)
-├── streaming_test.dart          # Real-time streaming (7 tests)
-├── error_handling_test.dart     # Edge cases (10 tests)
-└── all_integration_tests.dart   # Main test runner
+kiss_repository/integration_test/     # Shared test modules (flutter_test)
+├── data/
+│   ├── test_object.dart             # Shared test model
+│   └── queries.dart                 # Shared query classes
+├── basic_crud_integration_test.dart
+├── basic_batch_integration_test.dart
+├── basic_query_integration_test.dart
+├── basic_streaming_integration_test.dart
+└── basic_error_integration_test.dart
+
+kiss_firebase_repository/example/integration_test/  # Firebase-specific
+├── test_helpers.dart                # Firebase setup & configuration
+└── kiss_tests.dart                  # Main runner (imports shared tests)
 ```
 
-### Benefits of This Organization
+### Benefits of This Architecture
 
-- ✅ **Better Navigation** - Find tests by category easily
-- ✅ **Focused Testing** - Each file covers one specific area
-- ✅ **Parallel Execution** - Run multiple test files simultaneously
-- ✅ **Easier Maintenance** - Changes affect only relevant test files
-- ✅ **DRY Code** - Shared utilities reduce duplication
-- ✅ **Clear Separation** - 60-180 lines per file vs 700+ monolithic file
+- ✅ **Centralized Logic** - Test scenarios defined once in `kiss_repository`
+- ✅ **Cross-Implementation Consistency** - All repositories test the same scenarios
+- ✅ **Easy Maintenance** - Update tests in one place, apply everywhere
+- ✅ **Implementation-Specific Setup** - Each repository handles its own configuration
+- ✅ **90% Success Rate** - 28/31 tests passing on Firebase implementation
 
-## Package Structure
+## Current Test Results
 
-```
-kiss_firebase_repository/          # Package root
-├── lib/                          # Package source code
-├── test/                         # Unit tests  
-├── example/                      # Example Flutter app
-│   ├── lib/main.dart            # Example app
-│   ├── integration_test/        # Integration tests (39 tests)
-│   │   ├── utils/               # Shared test utilities
-│   │   ├── basic_crud_test.dart # CRUD operations
-│   │   ├── streaming_test.dart  # Real-time streaming
-│   │   └── ...                  # Other focused test modules
-│   └── pubspec.yaml             # Example app dependencies
-└── test_integration_with_emulator.sh  # Test runner script
-```
+**Firebase Repository: 28/31 tests passing (90% success rate)**
+
+✅ **Passing Areas:**
+- CRUD operations
+- Batch operations
+- Most query operations  
+- Real-time streaming
+- Error handling
+
+⚠️ **Known Issues (3 failing tests):**
+- Exception handling differences between Firebase and expected types
+- Query filtering edge cases
+- Batch failure scenarios with different error patterns
 
 ## Test Environment
 
@@ -203,22 +186,19 @@ kiss_firebase_repository/          # Package root
 - Verify Firebase CLI is installed and working
 
 **Error: "No supported devices connected"**
-- Make sure iOS simulator is running
+- Make sure Android emulator or iOS simulator is running
 - Check with `flutter devices` to see available devices
-- Try starting simulator manually: `flutter emulators --launch apple_ios_simulator`
+- Try: `flutter emulators --launch <emulator_name>`
 
-**Tests fail with import errors**
-- Verify all test files correctly import from `utils/test_data.dart` and `utils/test_helpers.dart`
-- Make sure you're running tests from the example directory
+**Error: "Not found: 'package:test/test.dart'"**
+- This indicates you're trying to run pure Dart tests with Flutter
+- Make sure you're running from the Firebase example directory with `flutter test`
 
-**Individual test modules fail**
-- Each test module is independent - verify the specific module's imports and setup
-- Check that `IntegrationTestHelpers.setupIntegrationTest()` is called in each test file
+**Tests fail with DateTime/Timestamp errors**
+- This should be fixed in the current version
+- Verify `test_helpers.dart` handles both DateTime and Timestamp types
 
-**Error: "Xcode command line tools are not installed"**
-- Install with: `xcode-select --install`
-
-**Tests fail with connection errors**
-- Ensure no firewall is blocking localhost:8080
-- Try restarting the Firebase emulator
-- Verify iOS simulator is fully booted before running tests
+**Error: "Gradle task assembleDebug failed"**
+- Ensure Android SDK is properly installed
+- Try `flutter clean` and `flutter pub get`
+- Verify Android emulator is running

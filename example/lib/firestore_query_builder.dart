@@ -1,54 +1,40 @@
-import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:kiss_firebase_repository/kiss_firebase_repository.dart';
-import 'package:kiss_firebase_repository_example/queries.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
+import 'queries.dart';
 
-class FirestoreUserQueryBuilder
-    implements QueryBuilder<firestore.Query<Map<String, dynamic>>> {
-  final String collectionPath;
-
-  FirestoreUserQueryBuilder(this.collectionPath);
-
+/// Firebase-specific query builder for ProductModel
+class FirestoreProductModelQueryBuilder implements QueryBuilder<firestore.Query<Map<String, dynamic>>> {
   @override
   firestore.Query<Map<String, dynamic>> build(Query query) {
-    final baseQuery = firestore.FirebaseFirestore.instance.collection(
-      collectionPath,
-    );
+    final baseQuery = firestore.FirebaseFirestore.instance.collection('products');
 
     if (query is QueryByName) {
-      // Search for users by name (case-insensitive contains)
-      // Note: Firestore has limited text search capabilities, so we use array-contains
-      // or implement client-side filtering for more complex search
-      if (query.searchTerm.isNotEmpty) {
-        // For exact match or prefix search, we can use range queries
-        final searchTermLower = query.searchTerm.toLowerCase();
-        return baseQuery
-            .where('name', isGreaterThanOrEqualTo: searchTermLower)
-            .where('name', isLessThan: '${searchTermLower}z')
-            .orderBy('name');
-      }
-    }
-
-    if (query is QueryByEmail) {
-      // Search for users by email domain
-      if (query.emailDomain.isNotEmpty) {
-        // Use array-contains for email domain search
-        // Note: This requires storing email domains separately or using different approach
-        return baseQuery
-            .where('email', isGreaterThanOrEqualTo: '@${query.emailDomain}')
-            .where('email', isLessThan: '@${query.emailDomain}z')
-            .orderBy('email');
-      }
-    }
-
-    if (query is QueryRecentUsers) {
-      // Get users created within the last N days
-      final cutoffDate = DateTime.now().subtract(Duration(days: query.daysAgo));
+      final prefix = query.namePrefix;
       return baseQuery
-          .where('createdAt', isGreaterThan: cutoffDate)
-          .orderBy('createdAt', descending: true);
+          .where('name', isGreaterThanOrEqualTo: prefix)
+          .where('name', isLessThan: '$prefix\uf8ff')
+          .orderBy('name');
     }
 
-    // Default: return all users ordered by creation date
-    return baseQuery.orderBy('createdAt', descending: true);
+    if (query is QueryByCreatedAfter) {
+      return baseQuery.where('created', isGreaterThan: firestore.Timestamp.fromDate(query.date)).orderBy('created');
+    }
+
+    if (query is QueryByCreatedBefore) {
+      return baseQuery
+          .where('created', isLessThan: firestore.Timestamp.fromDate(query.date))
+          .orderBy('created', descending: true);
+    }
+
+    if (query is QueryByPriceGreaterThan) {
+      return baseQuery.where('price', isGreaterThan: query.price).orderBy('price');
+    }
+
+    if (query is QueryByPriceLessThan) {
+      return baseQuery.where('price', isLessThan: query.price).orderBy('price', descending: true);
+    }
+
+    // Default: return all objects ordered by creation date (newest first)
+    return baseQuery.orderBy('created', descending: true);
   }
 }

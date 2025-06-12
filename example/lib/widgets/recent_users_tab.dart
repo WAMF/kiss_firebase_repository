@@ -1,36 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:kiss_firebase_repository/kiss_firebase_repository.dart';
-import 'package:kiss_firebase_repository_example/data_model.dart';
-import 'package:kiss_firebase_repository_example/queries.dart';
+import '../data_model.dart';
+import '../queries.dart';
 import 'user_list_widget.dart';
 
-class RecentUsersTab extends StatelessWidget {
-  final Repository<User> userRepository;
+class RecentProductsTab extends StatelessWidget {
+  final Repository<ProductModel> productRepository;
   final int daysBack;
 
-  const RecentUsersTab({
+  const RecentProductsTab({
     super.key,
-    required this.userRepository,
+    required this.productRepository,
     this.daysBack = 7,
   });
 
   @override
   Widget build(BuildContext context) {
+    final cutoffDate = DateTime.now().subtract(Duration(days: daysBack));
+
     return Column(
       children: [
         Container(
           padding: const EdgeInsets.all(16),
           child: Text(
-            'Recent Users (Last $daysBack Days)',
+            'Recent Products (Last $daysBack Days)',
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ),
         Expanded(
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
-            child: UserListWidget(
-              userRepository: userRepository,
-              query: QueryRecentUsers(daysBack),
+            child: ProductListWidget(
+              productRepository: productRepository,
+              query: QueryByCreatedAfter(cutoffDate),
             ),
           ),
         ),
