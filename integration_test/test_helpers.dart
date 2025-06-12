@@ -117,10 +117,10 @@ class IntegrationTestHelpers {
         await doc.reference.delete();
       }
       if (docs.docs.isNotEmpty) {
-        print('🧹 Cleared ${docs.docs.length} test records');
+        _log('🧹 Cleared ${docs.docs.length} test records');
       }
     } catch (e) {
-      print('ℹ️ Collection clear: $e');
+      _log('ℹ️ Collection clear: $e');
     }
   }
 
@@ -137,7 +137,7 @@ class IntegrationTestHelpers {
     try {
       // Test Firebase connection
       await firestore.FirebaseFirestore.instance.enableNetwork();
-      print('✅ Connected to Firebase Firestore emulator');
+      _log('✅ Connected to Firebase Firestore emulator');
     } catch (e) {
       throw Exception(
         'Failed to connect to Firebase Firestore. Make sure the emulator is running at localhost:8080\n'
@@ -146,16 +146,21 @@ class IntegrationTestHelpers {
       );
     }
 
-    print('🎯 Integration tests ready to run');
+    _log('🎯 Integration tests ready to run');
   }
 
   /// Teardown integration tests
   static Future<void> tearDownIntegrationTests() async {
     try {
       await clearTestCollection();
-      print('✅ Integration test cleanup completed');
+      _log('✅ Integration test cleanup completed');
     } catch (e) {
-      print('ℹ️ Cleanup error (may be harmless): $e');
+      _log('ℹ️ Cleanup error (may be harmless): $e');
     }
   }
+}
+
+void _log(String message) {
+  // ignore: avoid_print
+  print('🔍 $message');
 }
