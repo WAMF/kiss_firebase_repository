@@ -15,14 +15,15 @@ fi
 
 echo "✅ Firebase CLI found"
 
-# Navigate to root directory (where firebase.json is located)
+# Navigate to the Firebase repository directory (where firebase.json is located)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-cd "$PROJECT_ROOT/.."
+cd "$PROJECT_ROOT"
 
 # Check if firebase.json exists
 if [[ ! -f "firebase.json" ]]; then
-    echo "❌ firebase.json not found! Make sure you're in the correct project."
+    echo "❌ firebase.json not found in $PROJECT_ROOT"
+    echo "📍 Current directory: $(pwd)"
     exit 1
 fi
 
