@@ -17,13 +17,15 @@ This package implements the `kiss_repository` interface for Firebase Firestore, 
 
 ### 🔥 Firebase-Specific Features
 - ✅ Real-time streaming with Firestore listeners
+- ✅ Offline support with automatic local caching and sync
 - ✅ Auto-generated IDs (using Firestore's ID generation)
 - ✅ Firebase emulator support for development
 - ✅ Integration with Firebase ecosystem
 
 ### ⚠️ Limitations
-- **Case-insensitive search**: "fire" won't find "Firebase" (use PocketBase for this)
-- **Contains search**: "base" won't find "Firebase" (Firestore doesn't support this)
+- **Prefix-only search**: Only supports prefix matching ("Fire" finds "Firebase", but "base" won't)
+- **Case-sensitive search**: "fire" won't find "Firebase" (case matters)
+- **Non-atomic batch updates**: `updateAll` processes valid items and skips invalid ones (not truly atomic)
 - **Complex queries**: Subject to Firestore's query limitations
 - **Flutter only**: Requires Flutter SDK (not pure Dart)
 
