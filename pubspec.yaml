@@ -8,12 +8,14 @@ environment:
   flutter: ">=1.17.0"
 
 dependencies:
-  cloud_firestore: ^5.6.8
-  firebase_core: ^3.13.1
   flutter:
     sdk: flutter
+
+  cloud_firestore: ^5.6.8
+  firebase_core: ^3.13.1
   
-  kiss_repository: ^0.10.0
+  kiss_repository:
+    path: ../kiss_repository
 
 dev_dependencies:
   flutter_test:
@@ -21,4 +23,6 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   very_good_analysis: ^6.0.0
+  kiss_repository_tests:
+    path: ../kiss_repository_tests
 
