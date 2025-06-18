@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'kiss_tests.dart' as kiss_tests;
 import 'firebase_specific_tests.dart' as firebase_specific_tests;
+import 'kiss_tests.dart' as kiss_tests;
 
 void main() {
   group('All Firebase Integration Tests', () {
