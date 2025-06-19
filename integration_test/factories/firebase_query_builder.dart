@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:kiss_repository/kiss_repository.dart';
-import 'package:kiss_repository_tests/test.dart';
+import 'package:kiss_repository_tests/kiss_repository_tests.dart';
 
 /// Firebase-specific query builder for ProductModel
 class FirestoreProductQueryBuilder implements QueryBuilder<firestore.Query<Map<String, dynamic>>> {
