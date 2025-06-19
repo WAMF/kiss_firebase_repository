@@ -1,15 +1,15 @@
 // ignore_for_file: avoid_print
 
+import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:kiss_firebase_repository/kiss_firebase_repository.dart';
-import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
-import 'package:firebase_core/firebase_core.dart';
 import 'package:kiss_repository_tests/kiss_repository_tests.dart';
 
 import 'firebase_query_builder.dart';
 
-class FirebaseRepositoryFactory implements RepositoryFactory {
+class FirebaseRepositoryFactory implements RepositoryFactory<ProductModel> {
   static bool _initialized = false;
   Repository<ProductModel>? _repository;
 
