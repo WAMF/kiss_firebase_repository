@@ -15,7 +15,34 @@ class FirebaseRepositoryFactory implements RepositoryFactory<ProductModel> {
 
   static const String _testCollection = 'products';
 
-  static Future<void> initialize() async {
+  @override
+  Future<Repository<ProductModel>> createRepository() async {
+    await _initialize();
+
+    _repository = RepositoryFirestore<ProductModel>(
+      path: _testCollection,
+      fromFirestore: (ref, data) => ProductModel(
+        id: data['id'] as String? ?? '',
+        name: data['name'] as String? ?? '',
+        price: (data['price'] as num?)?.toDouble() ?? 0.0,
+        description: data['description'] as String? ?? '',
+        created: data['created'] is DateTime
+            ? data['created'] as DateTime
+            : (data['created'] as firestore.Timestamp).toDate(),
+      ),
+      toFirestore: (productModel) => {
+        'id': productModel.id,
+        'name': productModel.name,
+        'price': productModel.price,
+        'description': productModel.description,
+        'created': firestore.Timestamp.fromDate(productModel.created),
+      },
+      queryBuilder: FirestoreProductQueryBuilder(),
+    );
+    return _repository!;
+  }
+
+  static Future<void> _initialize() async {
     if (_initialized) return;
 
     IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -45,35 +72,6 @@ class FirebaseRepositoryFactory implements RepositoryFactory<ProductModel> {
 
     _initialized = true;
     print('✅ Firebase repository initialized');
-  }
-
-  @override
-  Repository<ProductModel> createRepository() {
-    if (!_initialized) {
-      throw StateError('Factory not initialized. Call initialize() first.');
-    }
-
-    _repository = RepositoryFirestore<ProductModel>(
-      path: _testCollection,
-      fromFirestore: (ref, data) => ProductModel(
-        id: data['id'] as String? ?? '',
-        name: data['name'] as String? ?? '',
-        price: (data['price'] as num?)?.toDouble() ?? 0.0,
-        description: data['description'] as String? ?? '',
-        created: data['created'] is DateTime
-            ? data['created'] as DateTime
-            : (data['created'] as firestore.Timestamp).toDate(),
-      ),
-      toFirestore: (productModel) => {
-        'id': productModel.id,
-        'name': productModel.name,
-        'price': productModel.price,
-        'description': productModel.description,
-        'created': firestore.Timestamp.fromDate(productModel.created),
-      },
-      queryBuilder: FirestoreProductQueryBuilder(),
-    );
-    return _repository!;
   }
 
   @override

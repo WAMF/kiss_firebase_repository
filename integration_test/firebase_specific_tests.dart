@@ -9,9 +9,8 @@ void main() {
   late Repository<ProductModel> repository;
 
   setUpAll(() async {
-    await FirebaseRepositoryFactory.initialize();
     factory = FirebaseRepositoryFactory();
-    repository = factory.createRepository();
+    repository = await factory.createRepository();
   });
 
   setUp(() async {
