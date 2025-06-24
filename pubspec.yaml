@@ -12,15 +12,13 @@ dependencies:
   firebase_core: ^3.13.1
   flutter:
     sdk: flutter
-  kiss_repository:
-    path: ../kiss_repository
+  
+  kiss_repository: ^0.10.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   integration_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
-
-flutter:
+  very_good_analysis: ^6.0.0
 

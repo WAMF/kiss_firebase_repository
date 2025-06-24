@@ -5,32 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:firebase_core/firebase_core.dart';
 
 import '../../kiss_repository/shared_test_logic/data/product_model.dart';
-
-/// Query classes for ProductModel
-class QueryByName extends Query {
-  final String namePrefix;
-  const QueryByName(this.namePrefix);
-}
-
-class QueryByCreatedAfter extends Query {
-  final DateTime date;
-  const QueryByCreatedAfter(this.date);
-}
-
-class QueryByCreatedBefore extends Query {
-  final DateTime date;
-  const QueryByCreatedBefore(this.date);
-}
-
-class QueryByPriceGreaterThan extends Query {
-  final double price;
-  const QueryByPriceGreaterThan(this.price);
-}
-
-class QueryByPriceLessThan extends Query {
-  final double price;
-  const QueryByPriceLessThan(this.price);
-}
+import '../../kiss_repository/shared_test_logic/data/queries.dart';
 
 /// Firebase-specific query builder for ProductModel
 class TestFirestoreProductQueryBuilder implements QueryBuilder<firestore.Query<Map<String, dynamic>>> {
@@ -90,7 +65,7 @@ class IntegrationTestHelpers {
     repository = RepositoryFirestore<ProductModel>(
       path: testCollection,
       fromFirestore: (ref, data) => ProductModel(
-        id: ref.id,
+        id: data['id'] as String? ?? '',
         name: data['name'] as String? ?? '',
         price: (data['price'] as num?)?.toDouble() ?? 0.0,
         description: data['description'] as String? ?? '',
@@ -99,6 +74,7 @@ class IntegrationTestHelpers {
             : (data['created'] as firestore.Timestamp).toDate(),
       ),
       toFirestore: (productModel) => {
+        'id': productModel.id,
         'name': productModel.name,
         'price': productModel.price,
         'description': productModel.description,
