@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kiss_repository_tests/kiss_repository_tests.dart';
 
 import 'test_helpers.dart';
-import '../../kiss_repository/integration_test/kiss_flutter_tests.dart';
 
 void main() {
   setUpAll(() async {

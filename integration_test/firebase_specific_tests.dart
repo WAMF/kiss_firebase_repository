@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kiss_repository_tests/kiss_repository_tests.dart';
 
 import 'test_helpers.dart';
-import '../../kiss_repository/shared_test_logic/data/product_model.dart';
 
 void main() {
   setUpAll(() async {
@@ -17,7 +17,9 @@ void main() {
   });
 
   group('Firebase-Specific Behavior', () {
-    testWidgets('addAutoIdentified without updateObjectWithId does not change the object', (WidgetTester tester) async {
+    testWidgets(
+        'addAutoIdentified without updateObjectWithId does not change the object',
+        (WidgetTester tester) async {
       final repository = IntegrationTestHelpers.repository;
       final productModel = ProductModel.create(name: 'ProductX', price: 9.99);
 

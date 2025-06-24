@@ -1,17 +1,17 @@
+import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:kiss_firebase_repository/kiss_firebase_repository.dart';
-import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
-import 'package:firebase_core/firebase_core.dart';
-
-import '../../kiss_repository/shared_test_logic/data/product_model.dart';
-import '../../kiss_repository/shared_test_logic/data/queries.dart';
+import 'package:kiss_repository_tests/kiss_repository_tests.dart';
 
 /// Firebase-specific query builder for ProductModel
-class TestFirestoreProductQueryBuilder implements QueryBuilder<firestore.Query<Map<String, dynamic>>> {
+class TestFirestoreProductQueryBuilder
+    implements QueryBuilder<firestore.Query<Map<String, dynamic>>> {
   @override
   firestore.Query<Map<String, dynamic>> build(Query query) {
-    final baseQuery = firestore.FirebaseFirestore.instance.collection('products');
+    final baseQuery =
+        firestore.FirebaseFirestore.instance.collection('products');
 
     if (query is QueryByName) {
       final prefix = query.namePrefix;
@@ -22,21 +22,29 @@ class TestFirestoreProductQueryBuilder implements QueryBuilder<firestore.Query<M
     }
 
     if (query is QueryByCreatedAfter) {
-      return baseQuery.where('created', isGreaterThan: firestore.Timestamp.fromDate(query.date)).orderBy('created');
+      return baseQuery
+          .where('created',
+              isGreaterThan: firestore.Timestamp.fromDate(query.date))
+          .orderBy('created');
     }
 
     if (query is QueryByCreatedBefore) {
       return baseQuery
-          .where('created', isLessThan: firestore.Timestamp.fromDate(query.date))
+          .where('created',
+              isLessThan: firestore.Timestamp.fromDate(query.date))
           .orderBy('created', descending: true);
     }
 
     if (query is QueryByPriceGreaterThan) {
-      return baseQuery.where('price', isGreaterThan: query.price).orderBy('price');
+      return baseQuery
+          .where('price', isGreaterThan: query.price)
+          .orderBy('price');
     }
 
     if (query is QueryByPriceLessThan) {
-      return baseQuery.where('price', isLessThan: query.price).orderBy('price', descending: true);
+      return baseQuery
+          .where('price', isLessThan: query.price)
+          .orderBy('price', descending: true);
     }
 
     // Default: return all objects ordered by creation date (newest first)
@@ -60,7 +68,8 @@ class IntegrationTestHelpers {
       ),
     );
 
-    firestore.FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
+    firestore.FirebaseFirestore.instance
+        .useFirestoreEmulator('localhost', 8080);
 
     repository = RepositoryFirestore<ProductModel>(
       path: testCollection,
@@ -87,7 +96,8 @@ class IntegrationTestHelpers {
   /// Clear the test collection before each test
   static Future<void> clearTestCollection() async {
     try {
-      final collection = firestore.FirebaseFirestore.instance.collection(testCollection);
+      final collection =
+          firestore.FirebaseFirestore.instance.collection(testCollection);
       final docs = await collection.get();
       for (final doc in docs.docs) {
         await doc.reference.delete();
