@@ -1,26 +1,24 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kiss_repository/kiss_repository.dart';
 import 'package:kiss_repository_tests/kiss_repository_tests.dart';
 
-import 'test_helpers.dart';
+import 'factories/firebase_repository_factory.dart';
 
 void main() {
-  setUpAll(() async {
-    await IntegrationTestHelpers.setupIntegrationTests();
-  });
+  late FirebaseRepositoryFactory factory;
+  late Repository<ProductModel> repository;
 
-  tearDownAll(() async {
-    await IntegrationTestHelpers.tearDownIntegrationTests();
+  setUpAll(() async {
+    factory = FirebaseRepositoryFactory();
+    repository = await factory.createRepository();
   });
 
   setUp(() async {
-    await IntegrationTestHelpers.clearTestCollection();
+    await factory.cleanup();
   });
 
   group('Firebase-Specific Behavior', () {
-    testWidgets(
-        'addAutoIdentified without updateObjectWithId does not change the object',
-        (WidgetTester tester) async {
-      final repository = IntegrationTestHelpers.repository;
+    testWidgets('addAutoIdentified without updateObjectWithId does not change the object', (WidgetTester tester) async {
       final productModel = ProductModel.create(name: 'ProductX', price: 9.99);
 
       final addedObject = await repository.addAutoIdentified(productModel);
