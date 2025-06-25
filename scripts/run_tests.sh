@@ -14,24 +14,17 @@ if [[ ! -f "pubspec.yaml" ]]; then
     exit 1
 fi
 
-# Check if adb is available
-if ! command -v adb &> /dev/null; then
-    echo "❌ adb command not found!"
-    echo "🔧 Please ensure Android SDK is installed and adb is in your PATH"
-    exit 1
-fi
-
 # Check if Android emulator is running
-echo "🔍 Checking if Android emulator is running..."
-DEVICES=$(adb devices | grep -E "device$|emulator" | wc -l)
-if [ "$DEVICES" -eq 0 ]; then
-    echo "❌ No Android emulator or device detected!"
-    echo "🚀 Start an Android emulator first or connect a physical device"
-    echo "   You can start an emulator from Android Studio or use: emulator @avd_name"
-    exit 1
+if command -v adb &> /dev/null; then
+    DEVICES=$(adb devices | grep -E "device$|emulator" | wc -l)
+    if [ "$DEVICES" -eq 0 ]; then
+        echo "❌ No Android emulator detected! Start one first."
+        exit 1
+    fi
+    echo "✅ Android emulator available"
+else
+    echo "⚠️  adb not found - ensure Android emulator is running manually"
 fi
-
-echo "✅ Android emulator/device is available"
 
 # Check if Firebase emulator is running
 echo "🔍 Checking if Firebase emulator is running..."
