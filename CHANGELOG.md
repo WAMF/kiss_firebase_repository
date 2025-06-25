@@ -1,24 +1,28 @@
-## 0.5.0
+## 0.9.0
 
-* Initial release
+* Update dependencies
 
-## 0.5.1
+## 0.8.0
 
-* Add reexport of kiss_repository
-
-## 0.6.0
-
-* Add addWithId method
-
-## 0.6.1
-
-* Bugfix: Remove forced unwraps, creating exceptions on object deletion
+* Update to new interface 
 
 ## 0.7.0
 
 * Update to new interface
 * Add integration tests with local emulator
 
-## 0.8.0
+## 0.6.1
 
-* Update to new interface 
+* Bugfix: Remove forced unwraps, creating exceptions on object deletion
+
+## 0.6.0
+
+* Add addWithId method
+
+## 0.5.1
+
+* Add reexport of kiss_repository
+
+## 0.5.0
+
+* Initial release

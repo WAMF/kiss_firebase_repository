@@ -1,18 +1,32 @@
 #!/bin/bash
 
-# KISS Firebase Repository Example - Run Integration Tests
-# Simple script to run integration tests (assumes emulator is already running)
+# KISS Firebase Repository - Run Integration Tests
+# Requires Android emulator and Firebase emulator to be running
+
+cd "$(dirname "$0")/.."
 
 echo "🧪 Running KISS Firebase Repository Integration Tests"
 echo "===================================================="
 
 # Check if we're in the right directory
 if [[ ! -f "pubspec.yaml" ]]; then
-    echo "❌ Please run this script from the example directory"
+    echo "❌ Please run this script from the kiss_firebase_repository directory"
     exit 1
 fi
 
-# Check if emulator is running
+# Check if Android emulator is running
+if command -v adb &> /dev/null; then
+    DEVICES=$(adb devices | grep -E "device$|emulator" | wc -l)
+    if [ "$DEVICES" -eq 0 ]; then
+        echo "❌ No Android emulator detected! Start one first."
+        exit 1
+    fi
+    echo "✅ Android emulator available"
+else
+    echo "⚠️  adb not found - ensure Android emulator is running manually"
+fi
+
+# Check if Firebase emulator is running
 echo "🔍 Checking if Firebase emulator is running..."
 if ! curl -s http://localhost:8080 > /dev/null; then
     echo "❌ Firebase emulator not running!"
