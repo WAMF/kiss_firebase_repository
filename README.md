@@ -43,7 +43,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  kiss_firebase_repository: ^0.7.0
+  kiss_firebase_repository: ^0.9.0
 ```
 
 ### Basic Usage
