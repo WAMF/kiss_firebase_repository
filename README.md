@@ -16,11 +16,20 @@ This package implements the `kiss_repository` interface for Firebase Firestore, 
 - ✅ Built-in error handling with typed exceptions
 
 ### 🔥 Firebase-Specific Features
-- ✅ Real-time streaming with Firestore listeners
+- ✅ **Real-time streaming** with Firestore listeners
+- ✅ **Multi-instance streaming** - Works across multiple server instances/deployments
 - ✅ Offline support with automatic local caching and sync
 - ✅ Auto-generated IDs (using Firestore's ID generation)
 - ✅ Firebase emulator support for development
 - ✅ Integration with Firebase ecosystem
+
+### 📡 Streaming Architecture
+- ✅ **Server-Side Streaming**: True database-level streaming with Firestore listeners
+- ✅ **Multi-Instance Support**: Changes from any server instance streamed to all connected clients
+- ✅ **Real-time Sync**: Automatic synchronization across web, mobile, desktop, and server environments
+- ✅ **Perfect for**: Multi-server web applications, real-time collaborative apps
+- ✅ **Horizontal Scaling**: Native support for distributed deployments
+- ✅ **Offline Sync**: Automatic local caching and synchronization when reconnected
 
 ### ⚠️ Limitations
 - **Prefix-only search**: Only supports prefix matching ("Fire" finds "Firebase", but "base" won't)

@@ -16,15 +16,6 @@ class FirestoreProductQueryBuilder implements QueryBuilder<firestore.Query<Map<S
           .orderBy('name');
     }
 
-    if (query is QueryByCreatedAfter) {
-      return baseQuery.where('created', isGreaterThan: firestore.Timestamp.fromDate(query.date)).orderBy('created');
-    }
-
-    if (query is QueryByCreatedBefore) {
-      return baseQuery
-          .where('created', isLessThan: firestore.Timestamp.fromDate(query.date))
-          .orderBy('created', descending: true);
-    }
 
     if (query is QueryByPriceGreaterThan) {
       return baseQuery.where('price', isGreaterThan: query.price).orderBy('price');
