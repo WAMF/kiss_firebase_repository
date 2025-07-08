@@ -21,8 +21,7 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
-  kiss_repository_tests:
-    path: ../kiss_repository_tests
+  kiss_repository_tests: ^0.2.0
   very_good_analysis: ^6.0.0
 
 
