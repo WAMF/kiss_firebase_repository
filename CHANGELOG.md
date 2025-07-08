@@ -1,3 +1,7 @@
+## 0.9.1
+
+* Updated to use kiss_repository_tests ^0.2.0
+
 ## 0.9.0
 
 * Update dependencies
