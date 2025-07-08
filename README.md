@@ -46,15 +46,6 @@ This package implements the `kiss_repository` interface for Firebase Firestore, 
 - Android SDK with emulator (for integration tests)
 - Firebase project setup
 
-### Installation
-
-Add this to your package's `pubspec.yaml` file:
-
-```yaml
-dependencies:
-  kiss_firebase_repository: ^0.9.0
-```
-
 ### Basic Usage
 
 ```dart
