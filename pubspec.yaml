@@ -1,6 +1,6 @@
 name: kiss_firebase_repository
 description: "A firebase implementation of kiss_repository interface"
-version: 0.9.2
+version: 0.9.1
 homepage: https://github.com/WAMF/kiss_firebase_repository
 
 environment:
