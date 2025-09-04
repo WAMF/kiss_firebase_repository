@@ -41,10 +41,18 @@ This package implements the `kiss_repository` interface for Firebase Firestore, 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Flutter SDK ^3.8.0
+- Flutter SDK ^3.6.0
 - Firebase CLI (for local development with emulator)
 - Android SDK with emulator (for integration tests)
 - Firebase project setup
+
+### Installation
+
+Add this package to your Flutter project:
+
+```bash
+dart pub add kiss_firebase_repository
+```
 
 ### Basic Usage
 
