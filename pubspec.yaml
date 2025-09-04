@@ -1,6 +1,6 @@
 name: kiss_firebase_repository
 description: "A firebase implementation of kiss_repository interface"
-version: 0.9.1
+version: 0.9.2
 homepage: https://github.com/WAMF/kiss_firebase_repository
 
 environment:
@@ -14,14 +14,14 @@ dependencies:
   cloud_firestore: ^5.6.8
   firebase_core: ^3.13.1
   
-  kiss_repository: ^0.12.0
+  kiss_repository: ^0.14.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   integration_test:
     sdk: flutter
-  kiss_repository_tests: ^0.2.0
+  kiss_repository_tests: ^0.3.1
   very_good_analysis: ^6.0.0
 
 
