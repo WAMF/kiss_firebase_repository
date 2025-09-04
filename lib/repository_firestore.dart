@@ -8,6 +8,11 @@ import 'package:kiss_repository/kiss_repository.dart';
 class FirestoreIdentifiedObject<T> extends IdentifiedObject<T> {
   FirestoreIdentifiedObject(T object, this._updateObjectWithId, this._repository) : super('', object);
 
+  /// Convenience factory method for creating objects with auto-generated IDs
+  factory FirestoreIdentifiedObject.create(
+          T object, T Function(T object, String id) updateObjectWithId, RepositoryFirestore<T> repository,) =>
+      FirestoreIdentifiedObject(object, updateObjectWithId, repository);
+
   final T Function(T object, String id) _updateObjectWithId;
   final RepositoryFirestore<T> _repository;
   String? _cachedId;
@@ -33,11 +38,6 @@ class FirestoreIdentifiedObject<T> extends IdentifiedObject<T> {
     final doc = _repository.store.collection(_repository.path).doc();
     return doc.id;
   }
-
-  /// Convenience factory method for creating objects with auto-generated IDs
-  factory FirestoreIdentifiedObject.create(
-          T object, T Function(T object, String id) updateObjectWithId, RepositoryFirestore<T> repository) =>
-      FirestoreIdentifiedObject(object, updateObjectWithId, repository);
 }
 
 dynamic _firebaseToDartTypeConversion(dynamic value) {
@@ -150,7 +150,7 @@ class RepositoryFirestore<T> extends Repository<T> {
   @override
   Stream<T> stream(String id) {
     final controller = StreamController<T>();
-    bool hasEmitted = false;
+    var hasEmitted = false;
 
     final sub = store.doc(_normaliseToFullPath(id)).snapshots().listen(
       (snapshot) {
@@ -168,12 +168,12 @@ class RepositoryFirestore<T> extends Repository<T> {
         controller.add(fromFirestore(
           snapshot.reference,
           RepositoryFirestore.typeConversionFromFirebase.convert(source: data),
-        ));
+        ),);
       },
       onError: controller.addError,
     );
 
-    controller.onCancel = () => sub.cancel();
+    controller.onCancel = sub.cancel;
     return controller.stream;
   }
 

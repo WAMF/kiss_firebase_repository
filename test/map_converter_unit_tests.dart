@@ -2,15 +2,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kiss_firebase_repository/kiss_firebase_repository.dart';
 
 class MockUser {
-  final String id;
-  final String name;
-  final DateTime createdAt;
 
   MockUser({
     required this.id,
     required this.name,
     required this.createdAt,
   });
+  final String id;
+  final String name;
+  final DateTime createdAt;
 
   MockUser copyWith({
     String? id,
@@ -55,7 +55,7 @@ void main() {
           'name': FieldFormat.preserveType('name'),
           'age': FieldFormat.preserveType('age'),
           'active': FieldFormat.preserveType('active'),
-        });
+        },);
         final converted = converter.convert(source: testMap);
 
         expect(converted['name'], 'Test User');
@@ -72,7 +72,7 @@ void main() {
         final converter = MapConverter(map: {
           'old_name': FieldFormat.preserveType('new_name'),
           'old_age': FieldFormat.preserveType('new_age'),
-        });
+        },);
         final converted = converter.convert(source: testMap);
 
         expect(converted['new_name'], 'Test Value');
@@ -89,7 +89,7 @@ void main() {
         final converter = MapConverter(map: {
           'name': FieldFormat.preserveType('name'),
           'missing_field': FieldFormat.preserveType('missing_field'),
-        });
+        },);
         final converted = converter.convert(source: testMap);
 
         expect(converted['name'], 'Test User');
@@ -105,7 +105,7 @@ void main() {
 
         final converter = MapConverter(map: {
           '*': FieldFormat(convert: (value) => 'converted_$value'),
-        });
+        },);
         final converted = converter.convert(source: testMap);
 
         expect(converted['field1'], 'converted_value1');
@@ -123,7 +123,7 @@ void main() {
         final converter = MapConverter(map: {
           'specific_field': FieldFormat.preserveType('renamed_specific'),
           '*': FieldFormat(convert: (value) => 'wildcard_$value'),
-        });
+        },);
         final converted = converter.convert(source: testMap);
 
         expect(converted['renamed_specific'], 'specific_value');
@@ -136,7 +136,7 @@ void main() {
       test('should convert to string', () {
         final testMap = {
           'string_field': 'already_string',
-          'datetime_field': DateTime(2023, 1, 1, 12, 0, 0),
+          'datetime_field': DateTime(2023, 1, 1, 12),
           'number_field': 42,
           'bool_field': true,
         };
@@ -144,17 +144,17 @@ void main() {
         final converter = MapConverter(map: {
           'string_field': FieldFormat(
               name: 'string_field',
-              convert: FieldFormat.defaultconverters['string']),
+              convert: FieldFormat.defaultconverters['string'],),
           'datetime_field': FieldFormat(
               name: 'datetime_field',
-              convert: FieldFormat.defaultconverters['string']),
+              convert: FieldFormat.defaultconverters['string'],),
           'number_field': FieldFormat(
               name: 'number_field',
-              convert: FieldFormat.defaultconverters['string']),
+              convert: FieldFormat.defaultconverters['string'],),
           'bool_field': FieldFormat(
               name: 'bool_field',
-              convert: FieldFormat.defaultconverters['string']),
-        });
+              convert: FieldFormat.defaultconverters['string'],),
+        },);
         final converted = converter.convert(source: testMap);
 
         expect(converted['string_field'], 'already_string');
@@ -172,11 +172,11 @@ void main() {
         final converter = MapConverter(map: {
           'text': FieldFormat(
               name: 'text',
-              convert: FieldFormat.defaultconverters['string_uppercase']),
+              convert: FieldFormat.defaultconverters['string_uppercase'],),
           'number': FieldFormat(
               name: 'number',
-              convert: FieldFormat.defaultconverters['string_uppercase']),
-        });
+              convert: FieldFormat.defaultconverters['string_uppercase'],),
+        },);
         final converted = converter.convert(source: testMap);
 
         expect(converted['text'], 'HELLO WORLD');
@@ -192,11 +192,11 @@ void main() {
         final converter = MapConverter(map: {
           'text': FieldFormat(
               name: 'text',
-              convert: FieldFormat.defaultconverters['string_lowercase']),
+              convert: FieldFormat.defaultconverters['string_lowercase'],),
           'number': FieldFormat(
               name: 'number',
-              convert: FieldFormat.defaultconverters['string_lowercase']),
-        });
+              convert: FieldFormat.defaultconverters['string_lowercase'],),
+        },);
         final converted = converter.convert(source: testMap);
 
         expect(converted['text'], 'hello world');
@@ -209,30 +209,30 @@ void main() {
           'double_field': 3.14,
           'string_number': '123',
           'string_double': '45.67',
-          'datetime_field': DateTime(2023, 1, 1),
+          'datetime_field': DateTime(2023),
           'invalid_string': 'not_a_number',
         };
 
         final converter = MapConverter(map: {
           'int_field': FieldFormat(
               name: 'int_field',
-              convert: FieldFormat.defaultconverters['number']),
+              convert: FieldFormat.defaultconverters['number'],),
           'double_field': FieldFormat(
               name: 'double_field',
-              convert: FieldFormat.defaultconverters['number']),
+              convert: FieldFormat.defaultconverters['number'],),
           'string_number': FieldFormat(
               name: 'string_number',
-              convert: FieldFormat.defaultconverters['number']),
+              convert: FieldFormat.defaultconverters['number'],),
           'string_double': FieldFormat(
               name: 'string_double',
-              convert: FieldFormat.defaultconverters['number']),
+              convert: FieldFormat.defaultconverters['number'],),
           'datetime_field': FieldFormat(
               name: 'datetime_field',
-              convert: FieldFormat.defaultconverters['number']),
+              convert: FieldFormat.defaultconverters['number'],),
           'invalid_string': FieldFormat(
               name: 'invalid_string',
-              convert: FieldFormat.defaultconverters['number']),
-        });
+              convert: FieldFormat.defaultconverters['number'],),
+        },);
         final converted = converter.convert(source: testMap);
 
         expect(converted['int_field'], 42);
@@ -240,7 +240,7 @@ void main() {
         expect(converted['string_number'], 123);
         expect(converted['string_double'], 45.67);
         expect(converted['datetime_field'],
-            (testMap['datetime_field'] as DateTime).millisecondsSinceEpoch);
+            (testMap['datetime_field']! as DateTime).millisecondsSinceEpoch,);
         expect(converted['invalid_string'], null);
       });
 
@@ -250,30 +250,30 @@ void main() {
           'double_field': 3.14,
           'string_number': '123',
           'string_double': '45.67',
-          'datetime_field': DateTime(2023, 1, 1),
+          'datetime_field': DateTime(2023),
           'invalid_string': 'not_a_number',
         };
 
         final converter = MapConverter(map: {
           'int_field': FieldFormat(
               name: 'int_field',
-              convert: FieldFormat.defaultconverters['double']),
+              convert: FieldFormat.defaultconverters['double'],),
           'double_field': FieldFormat(
               name: 'double_field',
-              convert: FieldFormat.defaultconverters['double']),
+              convert: FieldFormat.defaultconverters['double'],),
           'string_number': FieldFormat(
               name: 'string_number',
-              convert: FieldFormat.defaultconverters['double']),
+              convert: FieldFormat.defaultconverters['double'],),
           'string_double': FieldFormat(
               name: 'string_double',
-              convert: FieldFormat.defaultconverters['double']),
+              convert: FieldFormat.defaultconverters['double'],),
           'datetime_field': FieldFormat(
               name: 'datetime_field',
-              convert: FieldFormat.defaultconverters['double']),
+              convert: FieldFormat.defaultconverters['double'],),
           'invalid_string': FieldFormat(
               name: 'invalid_string',
-              convert: FieldFormat.defaultconverters['double']),
-        });
+              convert: FieldFormat.defaultconverters['double'],),
+        },);
         final converted = converter.convert(source: testMap);
 
         expect(converted['int_field'], 42.0);
@@ -282,9 +282,9 @@ void main() {
         expect(converted['string_double'], 45.67);
         expect(
             converted['datetime_field'],
-            (testMap['datetime_field'] as DateTime)
+            (testMap['datetime_field']! as DateTime)
                 .microsecondsSinceEpoch
-                .toDouble());
+                .toDouble(),);
         expect(converted['invalid_string'], null);
       });
 
@@ -308,43 +308,43 @@ void main() {
         final converter = MapConverter(map: {
           'bool_true': FieldFormat(
               name: 'bool_true',
-              convert: FieldFormat.defaultconverters['bool']),
+              convert: FieldFormat.defaultconverters['bool'],),
           'bool_false': FieldFormat(
               name: 'bool_false',
-              convert: FieldFormat.defaultconverters['bool']),
+              convert: FieldFormat.defaultconverters['bool'],),
           'double_zero': FieldFormat(
               name: 'double_zero',
-              convert: FieldFormat.defaultconverters['bool']),
+              convert: FieldFormat.defaultconverters['bool'],),
           'double_nonzero': FieldFormat(
               name: 'double_nonzero',
-              convert: FieldFormat.defaultconverters['bool']),
+              convert: FieldFormat.defaultconverters['bool'],),
           'int_zero': FieldFormat(
-              name: 'int_zero', convert: FieldFormat.defaultconverters['bool']),
+              name: 'int_zero', convert: FieldFormat.defaultconverters['bool'],),
           'int_positive': FieldFormat(
               name: 'int_positive',
-              convert: FieldFormat.defaultconverters['bool']),
+              convert: FieldFormat.defaultconverters['bool'],),
           'string_true': FieldFormat(
               name: 'string_true',
-              convert: FieldFormat.defaultconverters['bool']),
+              convert: FieldFormat.defaultconverters['bool'],),
           'string_yes': FieldFormat(
               name: 'string_yes',
-              convert: FieldFormat.defaultconverters['bool']),
+              convert: FieldFormat.defaultconverters['bool'],),
           'string_on': FieldFormat(
               name: 'string_on',
-              convert: FieldFormat.defaultconverters['bool']),
+              convert: FieldFormat.defaultconverters['bool'],),
           'string_false': FieldFormat(
               name: 'string_false',
-              convert: FieldFormat.defaultconverters['bool']),
+              convert: FieldFormat.defaultconverters['bool'],),
           'string_upper_true': FieldFormat(
               name: 'string_upper_true',
-              convert: FieldFormat.defaultconverters['bool']),
+              convert: FieldFormat.defaultconverters['bool'],),
           'string_upper_yes': FieldFormat(
               name: 'string_upper_yes',
-              convert: FieldFormat.defaultconverters['bool']),
+              convert: FieldFormat.defaultconverters['bool'],),
           'string_upper_on': FieldFormat(
               name: 'string_upper_on',
-              convert: FieldFormat.defaultconverters['bool']),
-        });
+              convert: FieldFormat.defaultconverters['bool'],),
+        },);
         final converted = converter.convert(source: testMap);
 
         expect(converted['bool_true'], true);
@@ -358,11 +358,11 @@ void main() {
         expect(converted['string_on'], true); // 'on'.startsWith('on') is true
         expect(converted['string_false'], false);
         expect(converted['string_upper_true'],
-            true); // lowerCase.startsWith('t') for 'TRUE' is true
+            true,); // lowerCase.startsWith('t') for 'TRUE' is true
         expect(converted['string_upper_yes'],
-            false); // 'YES'.startsWith('y') is false
+            false,); // 'YES'.startsWith('y') is false
         expect(converted['string_upper_on'],
-            false); // 'ON'.startsWith('on') is false
+            false,); // 'ON'.startsWith('on') is false
       });
 
       test('should convert to DateTime', () {
@@ -379,20 +379,20 @@ void main() {
         final converter = MapConverter(map: {
           'datetime_field': FieldFormat(
               name: 'datetime_field',
-              convert: FieldFormat.defaultconverters['datetime']),
+              convert: FieldFormat.defaultconverters['datetime'],),
           'string_iso': FieldFormat(
               name: 'string_iso',
-              convert: FieldFormat.defaultconverters['datetime']),
+              convert: FieldFormat.defaultconverters['datetime'],),
           'int_millis': FieldFormat(
               name: 'int_millis',
-              convert: FieldFormat.defaultconverters['datetime']),
+              convert: FieldFormat.defaultconverters['datetime'],),
           'double_micros': FieldFormat(
               name: 'double_micros',
-              convert: FieldFormat.defaultconverters['datetime']),
+              convert: FieldFormat.defaultconverters['datetime'],),
           'invalid_string': FieldFormat(
               name: 'invalid_string',
-              convert: FieldFormat.defaultconverters['datetime']),
-        });
+              convert: FieldFormat.defaultconverters['datetime'],),
+        },);
         final converted = converter.convert(source: testMap);
 
         expect(converted['datetime_field'], now);
@@ -403,7 +403,7 @@ void main() {
       });
 
       test('should convert to Duration', () {
-        final testDuration = Duration(milliseconds: 5000);
+        const testDuration = Duration(milliseconds: 5000);
         final testMap = {
           'duration_field': testDuration,
           'string_millis': '5000',
@@ -416,26 +416,26 @@ void main() {
         final converter = MapConverter(map: {
           'duration_field': FieldFormat(
               name: 'duration_field',
-              convert: FieldFormat.defaultconverters['duration']),
+              convert: FieldFormat.defaultconverters['duration'],),
           'string_millis': FieldFormat(
               name: 'string_millis',
-              convert: FieldFormat.defaultconverters['duration']),
+              convert: FieldFormat.defaultconverters['duration'],),
           'int_millis': FieldFormat(
               name: 'int_millis',
-              convert: FieldFormat.defaultconverters['duration']),
+              convert: FieldFormat.defaultconverters['duration'],),
           'double_millis': FieldFormat(
               name: 'double_millis',
-              convert: FieldFormat.defaultconverters['duration']),
+              convert: FieldFormat.defaultconverters['duration'],),
           'invalid_string': FieldFormat(
               name: 'invalid_string',
-              convert: FieldFormat.defaultconverters['duration']),
-        });
+              convert: FieldFormat.defaultconverters['duration'],),
+        },);
         final converted = converter.convert(source: testMap);
 
         expect(converted['duration_field'], testDuration);
-        expect(converted['string_millis'], Duration(milliseconds: 5000));
-        expect(converted['int_millis'], Duration(milliseconds: 3000));
-        expect(converted['double_millis'], Duration(milliseconds: 2500));
+        expect(converted['string_millis'], const Duration(milliseconds: 5000));
+        expect(converted['int_millis'], const Duration(milliseconds: 3000));
+        expect(converted['double_millis'], const Duration(milliseconds: 2500));
         expect(converted['invalid_string'], null);
 
         // Test DateTime to Duration conversion throws exception
@@ -443,10 +443,10 @@ void main() {
           final dateTimeConverter = MapConverter(map: {
             'datetime_field': FieldFormat(
                 name: 'datetime_field',
-                convert: FieldFormat.defaultconverters['duration']),
-          });
+                convert: FieldFormat.defaultconverters['duration'],),
+          },);
           dateTimeConverter.convert(source: {'datetime_field': DateTime.now()});
-        }, throwsException);
+        }, throwsException,);
       });
     });
 
@@ -484,10 +484,10 @@ void main() {
                 'type': {
                   'age': {'type': 'number'},
                   'active': {'type': 'bool'},
-                }
-              }
-            }
-          }
+                },
+              },
+            },
+          },
         };
 
         final converter = MapConverter.fromJson(json);
@@ -497,8 +497,8 @@ void main() {
             'profile': {
               'age': '30',
               'active': 'true',
-            }
-          }
+            },
+          },
         };
 
         final converted = converter.convert(source: testData);
@@ -564,7 +564,7 @@ void main() {
           'userName': FieldFormat.preserveType('user.profile.name'),
           'userAge': FieldFormat.preserveType('user.profile.age'),
           'userTheme': FieldFormat.preserveType('user.settings.theme'),
-        });
+        },);
         final converted = converter.convert(source: testMap);
 
         expect(converted['user']['profile']['name'], 'John Doe');
@@ -584,9 +584,9 @@ void main() {
         final converter = MapConverter(
           map: {
             'text1': FieldFormat(
-                name: 'text1', convert: customConverters['custom_upper']),
+                name: 'text1', convert: customConverters['custom_upper'],),
             'text2': FieldFormat(
-                name: 'text2', convert: customConverters['custom_reverse']),
+                name: 'text2', convert: customConverters['custom_reverse'],),
           },
           customconverters: customConverters,
         );
@@ -629,11 +629,11 @@ void main() {
       test('should create copy with new map', () {
         final original = MapConverter(map: {
           'field1': FieldFormat.preserveType('field1'),
-        });
+        },);
 
         final copy = original.copyWith(map: {
           'field2': FieldFormat.preserveType('field2'),
-        });
+        },);
 
         final testData = {
           'field1': 'value1',
@@ -653,7 +653,7 @@ void main() {
         final original = MapConverter(
           map: {
             'field': FieldFormat(
-                name: 'field', convert: (value) => 'original_$value'),
+                name: 'field', convert: (value) => 'original_$value',),
           },
         );
 
@@ -670,7 +670,7 @@ void main() {
 
         expect(originalResult['field'], 'original_test');
         expect(copyResult['field'],
-            'original_test'); // Still uses original converter for the field
+            'original_test',); // Still uses original converter for the field
       });
     });
 
@@ -678,7 +678,7 @@ void main() {
       test('should handle empty source map', () {
         final converter = MapConverter(map: {
           'field': FieldFormat.preserveType('field'),
-        });
+        },);
 
         final converted = converter.convert(source: {});
 
@@ -697,7 +697,7 @@ void main() {
       test('should handle null values in source', () {
         final converter = MapConverter(map: {
           'field': FieldFormat.preserveType('field'),
-        });
+        },);
 
         final testData = {'field': null};
 
@@ -709,7 +709,7 @@ void main() {
       test('should handle converter that returns null', () {
         final converter = MapConverter(map: {
           'field': FieldFormat(name: 'field', convert: (value) => null),
-        });
+        },);
 
         final testData = {'field': 'value'};
 
@@ -721,7 +721,7 @@ void main() {
       test('should handle converter with no convert function', () {
         final converter = MapConverter(map: {
           'field': FieldFormat(name: 'field'),
-        });
+        },);
 
         final testData = {'field': 'value'};
 
