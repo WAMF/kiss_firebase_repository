@@ -242,22 +242,42 @@ class RepositoryFirestore<T> extends Repository<T> {
   @override
   Future<T> update(String id, T Function(T current) updater) async {
     final doc = store.doc(_normaliseToFullPath(id));
-    final json = RepositoryFirestore.typeConversionToFirebase.convert(
-      source: toFirestore(updater(await get(id))),
-    );
-    await doc.update(json);
     final snapshot = await doc.get();
 
-    final data = snapshot.data();
-    if (data == null) {
+    final existingData = snapshot.data();
+    if (existingData == null) {
+      throw RepositoryException.notFound(id);
+    }
+
+    final current = fromFirestore(
+      snapshot.reference,
+      RepositoryFirestore.typeConversionFromFirebase.convert(source: existingData),
+    );
+
+    final updated = toFirestore(updater(current));
+    final updatedJson = RepositoryFirestore.typeConversionToFirebase.convert(source: updated);
+    final existingJson = RepositoryFirestore.typeConversionToFirebase.convert(source: existingData);
+
+    final changedFields = <String, dynamic>{};
+    for (final entry in updatedJson.entries) {
+      if (existingJson[entry.key] != entry.value) {
+        changedFields[entry.key] = entry.value;
+      }
+    }
+
+    if (changedFields.isNotEmpty) {
+      await doc.update(changedFields);
+    }
+
+    final finalSnapshot = await doc.get();
+    final finalData = finalSnapshot.data();
+    if (finalData == null) {
       throw RepositoryException.notFound(id);
     }
 
     return fromFirestore(
-      snapshot.reference,
-      RepositoryFirestore.typeConversionFromFirebase.convert(
-        source: data,
-      ),
+      finalSnapshot.reference,
+      RepositoryFirestore.typeConversionFromFirebase.convert(source: finalData),
     );
   }
 

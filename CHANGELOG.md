@@ -1,3 +1,7 @@
+## 0.9.3
+
+* Optimize update method to only send changed fields to Firestore
+
 ## 0.9.2
 
 * Updated to use kiss_repository_tests ^3.1.0
