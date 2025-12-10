@@ -1,3 +1,4 @@
+// Suppresses print warnings for test output logging
 // ignore_for_file: avoid_print
 
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
@@ -94,7 +95,7 @@ class FirebaseRepositoryFactory implements RepositoryFactory<ProductModel> {
       } else {
         print('🧹 Cleanup: Collection already empty');
       }
-    } catch (e) {
+    } on Exception catch (e) {
       print('❌ Cleanup failed: $e');
     }
   }

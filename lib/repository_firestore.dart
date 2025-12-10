@@ -158,7 +158,7 @@ class RepositoryFirestore<T> extends Repository<T> {
           if (!hasEmitted) {
             controller.addError(RepositoryException.notFound(id));
           } else {
-            controller.close();
+            unawaited(controller.close());
           }
           return;
         }
@@ -295,8 +295,6 @@ class RepositoryFirestore<T> extends Repository<T> {
       }
       await batch.commit();
       return items.map((e) => e.object).toList(growable: false);
-    } on ArgumentError catch (e) {
-      throw RepositoryException(message: 'Invalid document path in batch operation: ${e.message}');
     } on firestore.FirebaseException catch (e) {
       throw RepositoryException(message: 'Batch operation failed: ${e.message}');
     }

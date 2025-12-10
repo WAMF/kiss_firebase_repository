@@ -1,45 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kiss_firebase_repository/kiss_firebase_repository.dart';
 
-class MockUser {
-
-  MockUser({
-    required this.id,
-    required this.name,
-    required this.createdAt,
-  });
-  final String id;
-  final String name;
-  final DateTime createdAt;
-
-  MockUser copyWith({
-    String? id,
-    String? name,
-    DateTime? createdAt,
-  }) {
-    return MockUser(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      createdAt: createdAt ?? this.createdAt,
-    );
-  }
-
-  @override
-  String toString() => 'MockUser(id: $id, name: $name, createdAt: $createdAt)';
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is MockUser &&
-          runtimeType == other.runtimeType &&
-          id == other.id &&
-          name == other.name &&
-          createdAt == other.createdAt;
-
-  @override
-  int get hashCode => id.hashCode ^ name.hashCode ^ createdAt.hashCode;
-}
-
 void main() {
 
   group('MapConverter Tests', () {
@@ -438,15 +399,17 @@ void main() {
         expect(converted['double_millis'], const Duration(milliseconds: 2500));
         expect(converted['invalid_string'], null);
 
-        // Test DateTime to Duration conversion throws exception
-        expect(() {
-          final dateTimeConverter = MapConverter(map: {
-            'datetime_field': FieldFormat(
+        expect(
+          () => MapConverter(
+            map: {
+              'datetime_field': FieldFormat(
                 name: 'datetime_field',
-                convert: FieldFormat.defaultconverters['duration'],),
-          },);
-          dateTimeConverter.convert(source: {'datetime_field': DateTime.now()});
-        }, throwsException,);
+                convert: FieldFormat.defaultconverters['duration'],
+              ),
+            },
+          ).convert(source: {'datetime_field': DateTime.now()}),
+          throwsException,
+        );
       });
     });
 
@@ -503,9 +466,11 @@ void main() {
 
         final converted = converter.convert(source: testData);
 
-        expect(converted['user']['name'], 'John');
-        expect(converted['user']['profile']['age'], 30);
-        expect(converted['user']['profile']['active'], true);
+        final user = converted['user'] as Map<String, dynamic>;
+        final profile = user['profile'] as Map<String, dynamic>;
+        expect(user['name'], 'John');
+        expect(profile['age'], 30);
+        expect(profile['active'], true);
       });
 
       test('should create from JSON with field renaming', () {
@@ -567,9 +532,12 @@ void main() {
         },);
         final converted = converter.convert(source: testMap);
 
-        expect(converted['user']['profile']['name'], 'John Doe');
-        expect(converted['user']['profile']['age'], 30);
-        expect(converted['user']['settings']['theme'], 'dark');
+        final user = converted['user'] as Map<String, dynamic>;
+        final profile = user['profile'] as Map<String, dynamic>;
+        final settings = user['settings'] as Map<String, dynamic>;
+        expect(profile['name'], 'John Doe');
+        expect(profile['age'], 30);
+        expect(settings['theme'], 'dark');
       });
     });
 
