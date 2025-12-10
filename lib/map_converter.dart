@@ -1,3 +1,4 @@
+// Necessary for generic map value access
 // ignore_for_file: avoid_dynamic_calls
 
 typedef FormatConvert = dynamic Function(dynamic value);
@@ -43,7 +44,7 @@ class FieldFormat {
     return stringValue.isEmpty ? null : stringValue;
   }
 
-  static final defaultconverters = {
+  static final Map<String, Object? Function(dynamic value)> defaultconverters = {
     'string': _defaultStringConverter,
     'string_uppercase': (dynamic value) =>
         _defaultStringConverter(value)?.toUpperCase(),
